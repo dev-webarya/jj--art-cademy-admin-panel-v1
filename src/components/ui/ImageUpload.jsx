@@ -1,9 +1,10 @@
 import { useState } from 'react';
-import { FaCloudUploadAlt, FaTrash, FaSpinner } from 'react-icons/fa';
+import { FaCloudUploadAlt, FaTrash, FaSpinner, FaLink, FaImage } from 'react-icons/fa';
 import { useToast } from './Toast';
 
 const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
     const [uploading, setUploading] = useState(false);
+    const [mode, setMode] = useState('upload'); // 'upload' or 'url'
     const toast = useToast();
 
     // Environment variables
@@ -47,7 +48,6 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
             toast.error(`Upload failed: ${error.message}`);
         } finally {
             setUploading(false);
-            // Reset input value to allow selecting same file again if needed
             e.target.value = '';
         }
     };
@@ -57,14 +57,38 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
     };
 
     return (
-        <div className={`space-y-2 ${className}`}>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {label}
-            </label>
+        <div className={`space-y-3 ${className}`}>
+            <div className="flex justify-between items-center">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {label}
+                </label>
+                <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 text-xs font-medium">
+                    <button
+                        type="button"
+                        onClick={() => setMode('upload')}
+                        className={`px-3 py-1 rounded-md transition-all ${mode === 'upload'
+                                ? 'bg-white dark:bg-gray-600 text-purple-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                            }`}
+                    >
+                        <span className="flex items-center gap-1"><FaCloudUploadAlt /> Upload</span>
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setMode('url')}
+                        className={`px-3 py-1 rounded-md transition-all ${mode === 'url'
+                                ? 'bg-white dark:bg-gray-600 text-purple-600 shadow-sm'
+                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                            }`}
+                    >
+                        <span className="flex items-center gap-1"><FaLink /> URL</span>
+                    </button>
+                </div>
+            </div>
 
             <div className="flex items-start gap-4">
                 {/* Preview Area */}
-                <div className="relative w-32 h-32 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 flex items-center justify-center">
+                <div className="relative w-32 h-32 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 flex items-center justify-center group">
                     {value ? (
                         <>
                             <img
@@ -72,17 +96,19 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
                                 alt="Preview"
                                 className="w-full h-full object-cover"
                             />
-                            <button
-                                type="button"
-                                onClick={handleRemove}
-                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full text-xs hover:bg-red-600 transition-colors shadow-sm"
-                                title="Remove Image"
-                            >
-                                <FaTrash />
-                            </button>
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                <button
+                                    type="button"
+                                    onClick={handleRemove}
+                                    className="bg-red-500 text-white p-2 rounded-full hover:bg-red-600 transition-colors shadow-sm"
+                                    title="Remove Image"
+                                >
+                                    <FaTrash />
+                                </button>
+                            </div>
                         </>
                     ) : (
-                        <FaCloudUploadAlt className="text-4xl text-gray-400 dark:text-gray-500" />
+                        <FaImage className="text-4xl text-gray-300 dark:text-gray-600" />
                     )}
 
                     {uploading && (
@@ -92,46 +118,53 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
                     )}
                 </div>
 
-                {/* Upload Control */}
+                {/* Input Area */}
                 <div className="flex-1">
-                    <div className="relative">
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            disabled={uploading}
-                            className="hidden"
-                            id={`file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`}
-                        />
-                        <label
-                            htmlFor={`file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`}
-                            className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors
-                                ${uploading
-                                    ? 'border-gray-300 bg-gray-50'
-                                    : 'border-purple-300 hover:border-purple-500 bg-purple-50/50 hover:bg-purple-50 dark:border-gray-600 dark:hover:border-purple-500 dark:bg-gray-700/30'
-                                }`}
-                        >
-                            <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500 dark:text-gray-400">
-                                <FaCloudUploadAlt className="w-8 h-8 mb-2" />
-                                <p className="mb-1 text-sm"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                <p className="text-xs">SVG, PNG, JPG or GIF (MAX. 5MB)</p>
+                    {mode === 'upload' ? (
+                        <div className="relative">
+                            <input
+                                type="file"
+                                accept="image/*"
+                                onChange={handleFileChange}
+                                disabled={uploading}
+                                className="hidden"
+                                id={`file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`}
+                            />
+                            <label
+                                htmlFor={`file-upload-${label.replace(/\s+/g, '-').toLowerCase()}`}
+                                className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors
+                                    ${uploading
+                                        ? 'border-gray-300 bg-gray-50'
+                                        : 'border-purple-300 hover:border-purple-500 bg-purple-50/50 hover:bg-purple-50 dark:border-gray-600 dark:hover:border-purple-500 dark:bg-gray-700/30'
+                                    }`}
+                            >
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500 dark:text-gray-400">
+                                    <FaCloudUploadAlt className="w-8 h-8 mb-2" />
+                                    <p className="mb-1 text-sm"><span className="font-semibold">Click to upload</span> or drag and drop</p>
+                                    <p className="text-xs">SVG, PNG, JPG (MAX. 5MB)</p>
+                                </div>
+                            </label>
+                        </div>
+                    ) : (
+                        <div className="h-32 flex flex-col justify-center">
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <FaLink className="text-gray-400" />
+                                </div>
+                                <input
+                                    type="url"
+                                    value={value}
+                                    onChange={(e) => onChange(e.target.value)}
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+                                    placeholder="Enter image URL (https://...)"
+                                />
+                                <p className="mt-2 text-xs text-gray-500">
+                                    Paste a direct link to an image hosted elsewhere.
+                                </p>
                             </div>
-                        </label>
-                    </div>
+                        </div>
+                    )}
                 </div>
-            </div>
-            {/* Fallback Input for manual URL if needed */}
-            <div className="text-xs text-right">
-                <button
-                    type="button"
-                    onClick={() => {
-                        const url = prompt('Enter Image URL manually:', value);
-                        if (url !== null) onChange(url);
-                    }}
-                    className="text-purple-600 hover:underline dark:text-purple-400"
-                >
-                    Enter URL manually
-                </button>
             </div>
         </div>
     );

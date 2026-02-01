@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaSearch } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
-import { Button, Input, Select, Textarea } from '../components/ui/FormComponents';
+import { Button, Input, Select, Textarea, StatusBadge } from '../components/ui/FormComponents';
+import ImageUpload from '../components/ui/ImageUpload';
 import { useToast } from '../components/ui/Toast';
 import api, { getPaginated } from '../api/apiService';
 import { API_ENDPOINTS, EVENT_TYPES } from '../api/endpoints';
@@ -20,12 +21,18 @@ const EventsPage = () => {
         title: '',
         description: '',
         eventType: '',
-        startDate: '',
-        endDate: '',
+        startDateTime: '',
+        endDateTime: '',
         location: '',
-        isPublic: true,
-        maxParticipants: '',
+        isOnline: false,
+        meetingLink: '',
+        meetingPassword: '',
         imageUrl: '',
+        bannerUrl: '',
+        maxParticipants: '',
+        isPublic: true,
+        isRegistrationOpen: true,
+        fee: 0,
     });
     const [formLoading, setFormLoading] = useState(false);
 
@@ -59,24 +66,36 @@ const EventsPage = () => {
                 title: item.title || '',
                 description: item.description || '',
                 eventType: item.eventType || '',
-                startDate: item.startDate?.split('T')[0] || '',
-                endDate: item.endDate?.split('T')[0] || '',
+                startDateTime: item.startDateTime ? item.startDateTime.slice(0, 16) : '',
+                endDateTime: item.endDateTime ? item.endDateTime.slice(0, 16) : '',
                 location: item.location || '',
-                isPublic: item.isPublic ?? true,
-                maxParticipants: item.maxParticipants || '',
+                isOnline: item.isOnline ?? false,
+                meetingLink: item.meetingLink || '',
+                meetingPassword: item.meetingPassword || '',
                 imageUrl: item.imageUrl || '',
+                bannerUrl: item.bannerUrl || '',
+                maxParticipants: item.maxParticipants || '',
+                isPublic: item.isPublic ?? true,
+                isRegistrationOpen: item.isRegistrationOpen ?? true,
+                fee: item.fee || 0,
             });
         } else if (mode === 'create') {
             setFormData({
                 title: '',
                 description: '',
-                eventType: '',
-                startDate: '',
-                endDate: '',
+                eventType: 'WORKSHOP',
+                startDateTime: '',
+                endDateTime: '',
                 location: '',
-                isPublic: true,
-                maxParticipants: '',
+                isOnline: false,
+                meetingLink: '',
+                meetingPassword: '',
                 imageUrl: '',
+                bannerUrl: '',
+                maxParticipants: '',
+                isPublic: true,
+                isRegistrationOpen: true,
+                fee: 0,
             });
         }
         setModalOpen(true);
@@ -84,18 +103,21 @@ const EventsPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Manual validation check
+        if (!formData.title || !formData.eventType || !formData.startDateTime || !formData.endDateTime) {
+            toast.error('Please fill in all required fields (Title, Type, Start/End Date)');
+            return;
+        }
+
         setFormLoading(true);
         try {
             const requestData = {
-                title: formData.title,
-                description: formData.description,
-                eventType: formData.eventType,
-                startDate: formData.startDate,
-                endDate: formData.endDate,
-                location: formData.location,
-                isPublic: formData.isPublic,
+                ...formData,
+                startDateTime: new Date(formData.startDateTime).toISOString(),
+                endDateTime: new Date(formData.endDateTime).toISOString(),
                 maxParticipants: formData.maxParticipants ? parseInt(formData.maxParticipants) : null,
-                imageUrl: formData.imageUrl,
+                fee: parseFloat(formData.fee),
             };
 
             if (modalMode === 'create') {
@@ -127,26 +149,41 @@ const EventsPage = () => {
 
     const columns = [
         { key: 'title', label: 'Title', sortable: true },
-        { key: 'eventType', label: 'Type', render: (val) => val?.replace(/_/g, ' ') || '-' },
+        { key: 'eventType', label: 'Type', render: (val) => <span className="px-2 py-1 rounded text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-semibold">{val?.replace(/_/g, ' ')}</span> },
         {
-            key: 'startDate',
-            label: 'Start Date',
-            render: (val) => val ? new Date(val).toLocaleDateString() : '-'
+            key: 'startDateTime',
+            label: 'When',
+            render: (val, row) => (
+                <div className="text-xs">
+                    <div>{new Date(val).toLocaleDateString()}</div>
+                    <div className="text-gray-500">{new Date(val).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                </div>
+            )
         },
         {
-            key: 'endDate',
-            label: 'End Date',
-            render: (val) => val ? new Date(val).toLocaleDateString() : '-'
+            key: 'location',
+            label: 'Where',
+            render: (val, row) => row.isOnline ? <span className="text-purple-500 font-semibold">Online</span> : val || '-'
         },
-        { key: 'location', label: 'Location', render: (val) => val || '-' },
         {
             key: 'isPublic',
-            label: 'Public',
-            render: (val) => val ? (
-                <span className="text-green-500">Yes</span>
-            ) : (
-                <span className="text-gray-500">No</span>
+            label: 'Visibility',
+            render: (val) => val ? <span className="text-green-600 font-medium">Public</span> : <span className="text-gray-500">Private</span>
+        },
+        {
+            key: 'participants',
+            label: 'Participants',
+            render: (_, row) => (
+                <div className="text-xs">
+                    <span className="font-semibold">{row.currentParticipants || 0}</span>
+                    <span className="text-gray-500"> / {row.maxParticipants || '∞'}</span>
+                </div>
             )
+        },
+        {
+            key: 'fee',
+            label: 'Fee',
+            render: (val) => val > 0 ? `₹${val}` : <span className="text-green-600 font-semibold">Free</span>
         },
         {
             key: 'actions',
@@ -172,8 +209,8 @@ const EventsPage = () => {
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Events</h1>
-                <p className="text-gray-600 dark:text-gray-400">Manage workshops, exhibitions, and more</p>
+                <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Events Management</h1>
+                <p className="text-gray-600 dark:text-gray-400">Create and manage workshops, exhibitions, and other events</p>
             </div>
 
             <DataTable
@@ -198,40 +235,111 @@ const EventsPage = () => {
                     modalMode !== 'view' && (
                         <>
                             <Button variant="secondary" onClick={() => setModalOpen(false)}>Cancel</Button>
-                            <Button onClick={handleSubmit} loading={formLoading}>{modalMode === 'create' ? 'Create' : 'Update'}</Button>
+                            <Button type="submit" form="event-form" loading={formLoading}>{modalMode === 'create' ? 'Create' : 'Update'}</Button>
                         </>
                     )
                 }
             >
                 {modalMode === 'view' ? (
-                    <div className="space-y-3">
-                        <div><strong>Title:</strong> {selectedItem?.title}</div>
-                        <div><strong>Type:</strong> {selectedItem?.eventType?.replace(/_/g, ' ')}</div>
-                        <div><strong>Start:</strong> {selectedItem?.startDate}</div>
-                        <div><strong>End:</strong> {selectedItem?.endDate}</div>
-                        <div><strong>Location:</strong> {selectedItem?.location || '-'}</div>
-                        <div><strong>Public:</strong> {selectedItem?.isPublic ? 'Yes' : 'No'}</div>
-                        <div><strong>Max Participants:</strong> {selectedItem?.maxParticipants || 'Unlimited'}</div>
-                        <div><strong>Description:</strong> {selectedItem?.description || '-'}</div>
-                    </div>
-                ) : (
-                    <form onSubmit={handleSubmit} className="space-y-4">
-                        <Input label="Title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
-                        <Select label="Event Type" value={formData.eventType} onChange={(e) => setFormData({ ...formData, eventType: e.target.value })} options={eventTypeOptions} required />
-                        <div className="grid grid-cols-2 gap-4">
-                            <Input label="Start Date" type="date" value={formData.startDate} onChange={(e) => setFormData({ ...formData, startDate: e.target.value })} required />
-                            <Input label="End Date" type="date" value={formData.endDate} onChange={(e) => setFormData({ ...formData, endDate: e.target.value })} required />
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="col-span-2">
+                            {selectedItem?.imageUrl && <img src={selectedItem.imageUrl} alt="Event" className="w-full h-48 object-cover rounded-lg mb-4" />}
                         </div>
-                        <Input label="Location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} />
-                        <div className="grid grid-cols-2 gap-4">
-                            <Input label="Max Participants" type="number" value={formData.maxParticipants} onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })} placeholder="Leave empty for unlimited" />
-                            <div className="flex items-center gap-2 pt-6">
-                                <input type="checkbox" id="isPublic" checked={formData.isPublic} onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })} className="w-4 h-4" />
-                                <label htmlFor="isPublic" className="text-sm text-gray-700 dark:text-gray-300">Public Event</label>
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Title</span>
+                            <span className="font-bold text-lg text-gray-900 dark:text-white">{selectedItem?.title}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Type</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{selectedItem?.eventType?.replace(/_/g, ' ')}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Fee</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{selectedItem?.fee > 0 ? `₹${selectedItem.fee}` : 'Free'}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Start</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{new Date(selectedItem?.startDateTime).toLocaleString()}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">End</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{new Date(selectedItem?.endDateTime).toLocaleString()}</span>
+                        </div>
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Location / Link</span>
+                            <div className="font-medium text-gray-900 dark:text-white">
+                                {selectedItem?.isOnline ? (
+                                    <>
+                                        <span className="text-purple-500 mr-2">Online</span>
+                                        {selectedItem?.meetingLink && <a href={selectedItem.meetingLink} target="_blank" rel="noreferrer" className="text-blue-500 underline">{selectedItem.meetingLink}</a>}
+                                        {selectedItem?.meetingPassword && <span className="ml-2 text-gray-500">(Pass: {selectedItem.meetingPassword})</span>}
+                                    </>
+                                ) : selectedItem?.location || '-'}
                             </div>
                         </div>
-                        <Input label="Image URL" value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} placeholder="https://..." />
-                        <Textarea label="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Visibility</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{selectedItem?.isPublic ? 'Public' : 'Private'}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Registration</span>
+                            <span className="font-medium text-gray-900 dark:text-white">{selectedItem?.isRegistrationOpen ? 'Open' : 'Closed'}</span>
+                        </div>
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Description</span>
+                            <p className="font-medium text-gray-900 dark:text-white whitespace-pre-wrap">{selectedItem?.description || '-'}</p>
+                        </div>
+                    </div>
+                ) : (
+                    <form id="event-form" onSubmit={handleSubmit} className="space-y-4">
+                        <Input label="Title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
+                        <Select label="Event Type" value={formData.eventType} onChange={(e) => setFormData({ ...formData, eventType: e.target.value })} options={eventTypeOptions} required />
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input label="Start Date & Time" type="datetime-local" value={formData.startDateTime} onChange={(e) => setFormData({ ...formData, startDateTime: e.target.value })} required />
+                            <Input label="End Date & Time" type="datetime-local" value={formData.endDateTime} onChange={(e) => setFormData({ ...formData, endDateTime: e.target.value })} required />
+                        </div>
+
+                        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 my-2">
+                            <div className="flex items-center gap-2 mb-3">
+                                <input type="checkbox" id="isOnline" checked={formData.isOnline} onChange={(e) => setFormData({ ...formData, isOnline: e.target.checked })} className="w-4 h-4 rounded text-blue-600" />
+                                <label htmlFor="isOnline" className="font-medium text-gray-700 dark:text-gray-300">Online Event</label>
+                            </div>
+
+                            {formData.isOnline ? (
+                                <div className="grid grid-cols-2 gap-4">
+                                    <Input label="Meeting Link" value={formData.meetingLink} onChange={(e) => setFormData({ ...formData, meetingLink: e.target.value })} placeholder="https://zoom.us/..." />
+                                    <Input label="Meeting Password" value={formData.meetingPassword} onChange={(e) => setFormData({ ...formData, meetingPassword: e.target.value })} />
+                                </div>
+                            ) : (
+                                <Input label="Location" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} placeholder="Venue address..." />
+                            )}
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input label="Max Participants" type="number" value={formData.maxParticipants} onChange={(e) => setFormData({ ...formData, maxParticipants: e.target.value })} placeholder="Leave empty for unlimited" />
+                            <Input label="Entry Fee (₹)" type="number" step="0.01" value={formData.fee} onChange={(e) => setFormData({ ...formData, fee: e.target.value })} />
+                        </div>
+
+                        <div className="flex gap-6 pt-2">
+                            <div className="flex items-center gap-2">
+                                <input type="checkbox" id="isPublic" checked={formData.isPublic} onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })} className="w-4 h-4 rounded text-blue-600" />
+                                <label htmlFor="isPublic" className="text-sm text-gray-700 dark:text-gray-300">Public Visibility</label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <input type="checkbox" id="isRegistrationOpen" checked={formData.isRegistrationOpen} onChange={(e) => setFormData({ ...formData, isRegistrationOpen: e.target.checked })} className="w-4 h-4 rounded text-blue-600" />
+                                <label htmlFor="isRegistrationOpen" className="text-sm text-gray-700 dark:text-gray-300">Registration Open</label>
+                            </div>
+                        </div>
+
+                        <ImageUpload
+                            label="Event Image"
+                            currentImage={formData.imageUrl}
+                            onImageSelected={(url) => setFormData({ ...formData, imageUrl: url })}
+                        />
+                        <Input label="Banner URL" value={formData.bannerUrl} onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })} placeholder="Optional banner image URL" />
+
+                        <Textarea label="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} />
                     </form>
                 )}
             </Modal>

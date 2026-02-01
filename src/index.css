@@ -92,6 +92,20 @@ body {
   }
 }
 
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
 .animate-fadeInUp {
   animation: fadeInUp 0.5s ease-out;
 }
@@ -110,6 +124,14 @@ body {
 
 .animate-zoomIn {
   animation: zoomIn 0.3s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float 8s ease-in-out 4s infinite;
 }
 
 /* Gradient text */

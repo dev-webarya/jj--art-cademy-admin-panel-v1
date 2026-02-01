@@ -285,7 +285,7 @@ const MaterialsPage = () => {
                                 <div className="grid grid-cols-2 gap-2 text-sm">
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
                                         <div className="text-gray-500 text-xs">Price</div>
-                                        <div className="font-bold text-gray-800 dark:text-white">${item.basePrice}</div>
+                                        <div className="font-bold text-gray-800 dark:text-white">₹{item.basePrice}</div>
                                     </div>
                                     <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
                                         <div className="text-gray-500 text-xs">Stock</div>
@@ -371,7 +371,7 @@ const MaterialsPage = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                         <Input
-                            label="Base Price ($)"
+                            label="Base Price (₹)"
                             type="number"
                             step="0.01"
                             value={formData.basePrice}
@@ -404,7 +404,7 @@ const MaterialsPage = () => {
                                 {formData.variants.map((variant, index) => (
                                     <div key={index} className="flex justify-between items-center bg-white dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm text-sm">
                                         <span className="text-gray-800 dark:text-gray-200">
-                                            <span className="font-bold text-gray-900 dark:text-white">{variant.id}</span>: {variant.size} - ${variant.price} ({variant.stock} in stock)
+                                            <span className="font-bold text-gray-900 dark:text-white">{variant.id}</span>: {variant.size} - ₹{variant.price} ({variant.stock} in stock)
                                         </span>
                                         <button
                                             type="button"
@@ -546,9 +546,9 @@ const MaterialsPage = () => {
                                     <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                         <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{variant.id}</td>
                                         <td className="px-4 py-3">{variant.size}</td>
-                                        <td className="px-4 py-3 text-right">${variant.price}</td>
+                                        <td className="px-4 py-3 text-right">₹{variant.price}</td>
                                         <td className="px-4 py-3 text-right">
-                                            {variant.discountPrice ? `$${variant.discountPrice}` : '-'}
+                                            {variant.discountPrice ? `₹${variant.discountPrice}` : '-'}
                                         </td>
                                         <td className={`px-4 py-3 text-right font-bold ${variant.stock < 5 ? 'text-red-500' : 'text-green-500'}`}>
                                             {variant.stock}

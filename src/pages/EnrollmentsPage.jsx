@@ -67,7 +67,10 @@ const EnrollmentsPage = () => {
 
     const handleStatusUpdate = async (enrollmentId, status) => {
         try {
-            await api.put(`${API_ENDPOINTS.ENROLLMENTS.UPDATE_STATUS(enrollmentId)}?status=${status}`);
+            await api.put(API_ENDPOINTS.ENROLLMENTS.UPDATE_STATUS(enrollmentId), {
+                status: status,
+                adminNotes: ""
+            });
             toast.success(`Enrollment ${status.toLowerCase()}`);
             loadEnrollments();
         } catch (error) {
@@ -229,18 +232,61 @@ const EnrollmentsPage = () => {
                 }
             >
                 {modalMode === 'view' ? (
-                    <div className="grid grid-cols-2 gap-4">
-                        <div><strong>Roll No:</strong> {selectedEnrollment?.rollNo || '-'}</div>
-                        <div><strong>Status:</strong> <StatusBadge status={selectedEnrollment?.status} /></div>
-                        <div><strong>Student:</strong> {selectedEnrollment?.studentName || selectedEnrollment?.userName}</div>
-                        <div><strong>Email:</strong> {selectedEnrollment?.studentEmail || '-'}</div>
-                        <div><strong>Class:</strong> {selectedEnrollment?.className}</div>
-                        <div><strong>Schedule:</strong> {selectedEnrollment?.schedule?.replace(/_/g, ' ')}</div>
-                        <div><strong>Parent/Guardian:</strong> {selectedEnrollment?.parentGuardianName || '-'}</div>
-                        <div><strong>Student Age:</strong> {selectedEnrollment?.studentAge || '-'}</div>
-                        <div><strong>Address:</strong> {selectedEnrollment?.address || '-'}</div>
-                        <div><strong>Emergency Contact:</strong> {selectedEnrollment?.emergencyContactName} - {selectedEnrollment?.emergencyContactPhone}</div>
-                        <div className="col-span-2"><strong>Message:</strong> {selectedEnrollment?.additionalMessage || '-'}</div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Roll No</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.rollNo || '-'}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Status</span>
+                            <StatusBadge status={selectedEnrollment?.status} />
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Student</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.studentName || selectedEnrollment?.userName}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Email</span>
+                            <span className="font-medium text-gray-900 dark:text-white break-all">{selectedEnrollment?.studentEmail || '-'}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Class</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.className}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Schedule</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.schedule?.replace(/_/g, ' ')}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Parent/Guardian</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.parentGuardianName || '-'}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Age</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.studentAge || '-'}</span>
+                        </div>
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Address</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.address || '-'}</span>
+                        </div>
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Emergency Contact</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">
+                                {selectedEnrollment?.emergencyContactName && (
+                                    <>
+                                        {selectedEnrollment.emergencyContactName}
+                                        <span className="mx-2 text-gray-400">|</span>
+                                        {selectedEnrollment.emergencyContactPhone}
+                                    </>
+                                )}
+                            </span>
+                        </div>
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Message</span>
+                            <p className="font-medium text-gray-900 dark:text-white text-base whitespace-pre-wrap">
+                                {selectedEnrollment?.additionalMessage || '-'}
+                            </p>
+                        </div>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">

@@ -17,7 +17,13 @@ const SubscriptionsPage = () => {
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('view');
     const [selectedItem, setSelectedItem] = useState(null);
-    const [formData, setFormData] = useState({ enrollmentId: '', classesAllowed: 8 });
+    const [formData, setFormData] = useState({
+        enrollmentId: '',
+        subscriptionMonth: new Date().getMonth() + 1,
+        subscriptionYear: new Date().getFullYear(),
+        allowedSessions: 8,
+        notes: ''
+    });
     const [formLoading, setFormLoading] = useState(false);
 
     const loadEnrollments = useCallback(async () => {
@@ -77,7 +83,16 @@ const SubscriptionsPage = () => {
     const openModal = (mode, item = null) => {
         setModalMode(mode);
         setSelectedItem(item);
-        setFormData({ enrollmentId: '', classesAllowed: 8 });
+        if (mode === 'create') {
+            const today = new Date();
+            setFormData({
+                enrollmentId: '',
+                subscriptionMonth: today.getMonth() + 1,
+                subscriptionYear: today.getFullYear(),
+                allowedSessions: 8,
+                notes: ''
+            });
+        }
         setModalOpen(true);
     };
 
@@ -87,7 +102,10 @@ const SubscriptionsPage = () => {
         try {
             await api.post(API_ENDPOINTS.SUBSCRIPTIONS.CREATE, {
                 enrollmentId: formData.enrollmentId,
-                classesAllowed: parseInt(formData.classesAllowed),
+                subscriptionMonth: parseInt(formData.subscriptionMonth),
+                subscriptionYear: parseInt(formData.subscriptionYear),
+                allowedSessions: parseInt(formData.allowedSessions),
+                notes: formData.notes
             });
             toast.success('Subscription created');
             setModalOpen(false);
@@ -197,19 +215,59 @@ const SubscriptionsPage = () => {
                 }
             >
                 {modalMode === 'view' ? (
-                    <div className="space-y-3">
-                        <div><strong>Student:</strong> {selectedItem?.studentName}</div>
-                        <div><strong>Roll No:</strong> {selectedItem?.rollNo || '-'}</div>
-                        <div><strong>Email:</strong> {selectedItem?.studentEmail || '-'}</div>
-                        <div><strong>Period:</strong> {selectedItem?.subscriptionMonth}/{selectedItem?.subscriptionYear}</div>
-                        <div><strong>Start Date:</strong> {selectedItem?.startDate}</div>
-                        <div><strong>End Date:</strong> {selectedItem?.endDate}</div>
-                        <div><strong>Allowed Sessions:</strong> {selectedItem?.allowedSessions}</div>
-                        <div><strong>Attended Sessions:</strong> {selectedItem?.attendedSessions}</div>
-                        <div><strong>Remaining Sessions:</strong> {selectedItem?.remainingSessions}</div>
-                        <div><strong>Status:</strong> <StatusBadge status={selectedItem?.status} /></div>
-                        <div><strong>Over Limit:</strong> {selectedItem?.isOverLimit ? 'Yes' : 'No'}</div>
-                        <div><strong>Notes:</strong> {selectedItem?.notes || '-'}</div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Student</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.studentName}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Roll No</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.rollNo || '-'}</span>
+                        </div>
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Email</span>
+                            <span className="font-medium text-gray-900 dark:text-white break-all">{selectedItem?.studentEmail || '-'}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Period</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.subscriptionMonth}/{selectedItem?.subscriptionYear}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Status</span>
+                            <StatusBadge status={selectedItem?.status} />
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Start Date</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.startDate}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">End Date</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.endDate}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Allowed Sessions</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.allowedSessions}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Attended</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.attendedSessions}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Remaining</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.remainingSessions}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Over Limit</span>
+                            <span className={`font-medium text-base ${selectedItem?.isOverLimit ? 'text-red-500' : 'text-gray-900 dark:text-white'}`}>
+                                {selectedItem?.isOverLimit ? 'Yes' : 'No'}
+                            </span>
+                        </div>
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Notes</span>
+                            <p className="font-medium text-gray-900 dark:text-white text-base whitespace-pre-wrap">
+                                {selectedItem?.notes || '-'}
+                            </p>
+                        </div>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
@@ -221,13 +279,39 @@ const SubscriptionsPage = () => {
                             placeholder="Select approved enrollment..."
                             required
                         />
+                        <div className="grid grid-cols-2 gap-4">
+                            <Input
+                                label="Month"
+                                type="number"
+                                value={formData.subscriptionMonth}
+                                onChange={(e) => setFormData({ ...formData, subscriptionMonth: e.target.value })}
+                                min={1}
+                                max={12}
+                                required
+                            />
+                            <Input
+                                label="Year"
+                                type="number"
+                                value={formData.subscriptionYear}
+                                onChange={(e) => setFormData({ ...formData, subscriptionYear: e.target.value })}
+                                min={2025}
+                                required
+                            />
+                        </div>
                         <Input
-                            label="Classes Allowed"
+                            label="Allowed Sessions"
                             type="number"
-                            value={formData.classesAllowed}
-                            onChange={(e) => setFormData({ ...formData, classesAllowed: e.target.value })}
+                            value={formData.allowedSessions}
+                            onChange={(e) => setFormData({ ...formData, allowedSessions: e.target.value })}
                             min={1}
                             max={31}
+                            required
+                        />
+                        <Input
+                            label="Notes"
+                            value={formData.notes}
+                            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                            placeholder="Optional notes"
                         />
                     </form>
                 )}

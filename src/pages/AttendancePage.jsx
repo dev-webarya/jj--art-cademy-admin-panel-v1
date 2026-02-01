@@ -251,12 +251,24 @@ const AttendancePage = () => {
             >
                 <div className="space-y-4">
                     {/* Session Info */}
-                    <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div><strong>Date:</strong> {selectedSession?.sessionDate}</div>
-                            <div><strong>Time:</strong> {selectedSession?.startTime} - {selectedSession?.endTime}</div>
-                            <div><strong>Status:</strong> <StatusBadge status={selectedSession?.status} /></div>
-                            <div><strong>Meeting:</strong> <a href={selectedSession?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-purple-500 hover:underline">Join</a></div>
+                            <div>
+                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Date</span>
+                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.sessionDate}</span>
+                            </div>
+                            <div>
+                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Time</span>
+                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.startTime} - {selectedSession?.endTime}</span>
+                            </div>
+                            <div>
+                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Status</span>
+                                <StatusBadge status={selectedSession?.status} />
+                            </div>
+                            <div>
+                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Meeting</span>
+                                <a href={selectedSession?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline font-medium">Join</a>
+                            </div>
                         </div>
                     </div>
 
@@ -288,8 +300,8 @@ const AttendancePage = () => {
                                         <tr
                                             key={student.studentId}
                                             className={`transition-colors ${student.isPresent
-                                                    ? 'bg-green-50 dark:bg-green-900/10'
-                                                    : 'bg-red-50 dark:bg-red-900/10'
+                                                ? 'bg-green-50 dark:bg-green-900/10'
+                                                : 'bg-red-50 dark:bg-red-900/10'
                                                 }`}
                                         >
                                             <td className="px-4 py-3 font-mono font-semibold text-gray-800 dark:text-white">
@@ -311,8 +323,8 @@ const AttendancePage = () => {
                                                 <button
                                                     onClick={() => toggleStudentAttendance(student.studentId)}
                                                     className={`px-4 py-2 rounded-lg font-semibold transition-all ${student.isPresent
-                                                            ? 'bg-green-500 text-white hover:bg-green-600'
-                                                            : 'bg-red-500 text-white hover:bg-red-600'
+                                                        ? 'bg-green-500 text-white hover:bg-green-600'
+                                                        : 'bg-red-500 text-white hover:bg-red-600'
                                                         }`}
                                                 >
                                                     {student.isPresent ? (
@@ -360,12 +372,24 @@ const AttendancePage = () => {
             >
                 <div className="space-y-4">
                     {/* Session Info */}
-                    <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
+                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600">
                         <div className="grid grid-cols-2 gap-4 text-sm">
-                            <div><strong>Date:</strong> {selectedSession?.sessionDate}</div>
-                            <div><strong>Time:</strong> {selectedSession?.startTime} - {selectedSession?.endTime}</div>
-                            <div><strong>Present:</strong> <span className="text-green-600 font-semibold">{selectedSession?.presentCount || 0}</span></div>
-                            <div><strong>Absent:</strong> <span className="text-red-500 font-semibold">{selectedSession?.absentCount || 0}</span></div>
+                            <div>
+                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Date</span>
+                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.sessionDate}</span>
+                            </div>
+                            <div>
+                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Time</span>
+                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.startTime} - {selectedSession?.endTime}</span>
+                            </div>
+                            <div>
+                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Present</span>
+                                <span className="font-bold text-green-600 dark:text-green-400">{selectedSession?.presentCount || 0}</span>
+                            </div>
+                            <div>
+                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Absent</span>
+                                <span className="font-bold text-red-600 dark:text-red-400">{selectedSession?.absentCount || 0}</span>
+                            </div>
                         </div>
                     </div>
 

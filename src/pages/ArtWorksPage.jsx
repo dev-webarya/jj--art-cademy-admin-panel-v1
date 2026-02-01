@@ -215,11 +215,11 @@ const ArtWorksPage = () => {
                                 />
                                 <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
                                     <span className="bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded-md text-xs font-bold shadow-sm">
-                                        ${item.discountPrice || item.basePrice}
+                                        ₹{item.discountPrice || item.basePrice}
                                     </span>
                                     {item.discountPrice && item.discountPrice < item.basePrice && (
                                         <span className="bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold line-through shadow-sm">
-                                            ${item.basePrice}
+                                            ₹{item.basePrice}
                                         </span>
                                     )}
                                 </div>
@@ -332,14 +332,14 @@ const ArtWorksPage = () => {
                             placeholder="e.g. 24x36"
                         />
                         <Input
-                            label="Base Price ($)"
+                            label="Base Price (₹)"
                             type="number"
                             value={formData.basePrice}
                             onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
                             required
                         />
                         <Input
-                            label="Discount Price ($)"
+                            label="Discount Price (₹)"
                             type="number"
                             value={formData.discountPrice}
                             onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}

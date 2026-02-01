@@ -220,7 +220,7 @@ const ClassesPage = () => {
                                 </div>
                                 {item.discountPrice < item.basePrice && (
                                     <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-sm">
-                                        Save ${(item.basePrice - item.discountPrice).toFixed(0)}
+                                        Save ₹{(item.basePrice - item.discountPrice).toFixed(0)}
                                     </div>
                                 )}
                             </div>
@@ -254,11 +254,11 @@ const ClassesPage = () => {
                                         <span className="text-xs text-gray-500 underline">Price</span>
                                         <div className="flex items-baseline gap-2">
                                             <span className="text-lg font-bold text-gray-900 dark:text-white">
-                                                ${item.discountPrice || item.basePrice}
+                                                ₹{item.discountPrice || item.basePrice}
                                             </span>
                                             {item.discountPrice && (
                                                 <span className="text-sm text-gray-400 line-through">
-                                                    ${item.basePrice}
+                                                    ₹{item.basePrice}
                                                 </span>
                                             )}
                                         </div>
@@ -340,14 +340,14 @@ const ClassesPage = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <Input
-                            label="Base Price ($)"
+                            label="Base Price (₹)"
                             type="number"
                             value={formData.basePrice}
                             onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
                             required
                         />
                         <Input
-                            label="Discount Price ($)"
+                            label="Discount Price (₹)"
                             type="number"
                             value={formData.discountPrice}
                             onChange={(e) => setFormData({ ...formData, discountPrice: e.target.value })}

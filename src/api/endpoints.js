@@ -55,7 +55,7 @@ export const API_ENDPOINTS = {
         GET_BY_ID: (id) => `${API_PREFIX}/enrollments/${id}`, // GET
         UPDATE: (id) => `${API_PREFIX}/enrollments/${id}`, // PUT
         DELETE: (id) => `${API_PREFIX}/enrollments/${id}`, // DELETE
-        UPDATE_STATUS: (id) => `${API_PREFIX}/enrollments/${id}/status`, // PUT with status query param
+        UPDATE_STATUS: (id) => `${API_PREFIX}/enrollments/${id}/status`, // PUT with status in body
         CANCEL: (id) => `${API_PREFIX}/enrollments/${id}/cancel`, // PUT
     },
 

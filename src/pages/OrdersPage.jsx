@@ -70,7 +70,7 @@ const OrdersPage = () => {
         {
             key: 'totalAmount',
             label: 'Total',
-            render: (val) => val ? `$${parseFloat(val).toFixed(2)}` : '-'
+            render: (val) => val ? `₹${parseFloat(val).toFixed(2)}` : '-'
         },
         { key: 'status', label: 'Status', render: (val) => <StatusBadge status={val} /> },
         {
@@ -150,7 +150,7 @@ const OrdersPage = () => {
                                             <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                                         </div>
                                         <p className="font-semibold text-gray-800 dark:text-white">
-                                            ${(item.price * item.quantity).toFixed(2)}
+                                            ₹{(item.price * item.quantity).toFixed(2)}
                                         </p>
                                     </div>
                                 )) || <p className="text-gray-500">No items</p>}
@@ -161,14 +161,15 @@ const OrdersPage = () => {
                         <div className="flex justify-end">
                             <div className="text-right space-y-1">
                                 <p className="text-gray-600 dark:text-gray-400">
-                                    Subtotal: ${selectedOrder.subtotal?.toFixed(2) || '0.00'}
+                                    Subtotal: ₹{selectedOrder.subtotal?.toFixed(2) || '0.00'}
                                 </p>
                                 <p className="text-gray-600 dark:text-gray-400">
-                                    Shipping: ${selectedOrder.shippingCost?.toFixed(2) || '0.00'}
+                                    Shipping: ₹{selectedOrder.shippingCost?.toFixed(2) || '0.00'}
                                 </p>
                                 <p className="text-xl font-bold text-gray-800 dark:text-white">
-                                    Total: ${selectedOrder.totalAmount?.toFixed(2) || '0.00'}
+                                    Total: ₹{selectedOrder.totalAmount?.toFixed(2) || '0.00'}
                                 </p>
+
                             </div>
                         </div>
 

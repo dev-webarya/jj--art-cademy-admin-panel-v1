@@ -216,18 +216,55 @@ const SessionsPage = () => {
                 }
             >
                 {modalMode === 'view' ? (
-                    <div className="space-y-3">
-                        <div><strong>Topic:</strong> {selectedItem?.topic}</div>
-                        <div><strong>Date:</strong> {selectedItem?.sessionDate}</div>
-                        <div><strong>Time:</strong> {selectedItem?.startTime} - {selectedItem?.endTime}</div>
-                        <div><strong>Status:</strong> <StatusBadge status={selectedItem?.status} /></div>
-                        <div><strong>Total Students:</strong> {selectedItem?.totalStudents || 0}</div>
-                        <div><strong>Present:</strong> {selectedItem?.presentCount || 0}</div>
-                        <div><strong>Absent:</strong> {selectedItem?.absentCount || 0}</div>
-                        <div><strong>Attendance Taken:</strong> {selectedItem?.attendanceTaken ? 'Yes' : 'No'}</div>
-                        <div><strong>Meeting Link:</strong> <a href={selectedItem?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-purple-500">{selectedItem?.meetingLink || '-'}</a></div>
-                        <div><strong>Meeting Password:</strong> {selectedItem?.meetingPassword || '-'}</div>
-                        <div><strong>Description:</strong> {selectedItem?.description || '-'}</div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Topic</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.topic}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Date</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.sessionDate}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Status</span>
+                            <StatusBadge status={selectedItem?.status} />
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Time</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.startTime} - {selectedItem?.endTime}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Attendance</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.attendanceTaken ? 'Taken' : 'Not Taken'}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Total Students</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.totalStudents || 0}</span>
+                        </div>
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Present / Absent</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">
+                                <span className="text-green-600 dark:text-green-400">{selectedItem?.presentCount || 0}</span>
+                                <span className="mx-2 text-gray-400">/</span>
+                                <span className="text-red-600 dark:text-red-400">{selectedItem?.absentCount || 0}</span>
+                            </span>
+                        </div>
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Meeting Link</span>
+                            <a href={selectedItem?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline break-all">
+                                {selectedItem?.meetingLink || '-'}
+                            </a>
+                        </div>
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Meeting Password</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.meetingPassword || '-'}</span>
+                        </div>
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Description</span>
+                            <p className="font-medium text-gray-900 dark:text-white text-base whitespace-pre-wrap">
+                                {selectedItem?.description || '-'}
+                            </p>
+                        </div>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">

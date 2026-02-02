@@ -266,10 +266,9 @@ const GalleriesPage = () => {
                         required
                     />
 
-                    <Input
-                        label="Image URL"
+                    <ImageUpload
                         value={formData.imageUrl}
-                        onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
+                        onChange={(url) => setFormData({ ...formData, imageUrl: url })}
                     />
 
                     <Textarea

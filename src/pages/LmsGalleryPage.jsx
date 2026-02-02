@@ -3,6 +3,7 @@ import { FaPlus, FaEdit, FaTrash, FaCheck, FaTimes } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
 import { Button, Input, Textarea, StatusBadge } from '../components/ui/FormComponents';
+import ImageUpload from '../components/ui/ImageUpload';
 import { useToast } from '../components/ui/Toast';
 import api, { getPaginated } from '../api/apiService';
 import { API_ENDPOINTS } from '../api/endpoints';
@@ -161,7 +162,7 @@ const LmsGalleryPage = () => {
             <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={modalMode === 'create' ? 'Add Gallery Item' : 'Edit Gallery Item'} size="md" footer={<><Button variant="secondary" onClick={() => setModalOpen(false)}>Cancel</Button><Button onClick={handleSubmit} loading={formLoading}>{modalMode === 'create' ? 'Create' : 'Update'}</Button></>}>
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <Input label="Title" value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required />
-                    <Input label="Image URL" value={formData.imageUrl} onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })} required />
+                    <ImageUpload label="Image" value={formData.imageUrl} onChange={(url) => setFormData({ ...formData, imageUrl: url })} />
                     <Input label="Student ID" value={formData.studentId} onChange={(e) => setFormData({ ...formData, studentId: e.target.value })} />
                     <Input label="Session ID" value={formData.sessionId} onChange={(e) => setFormData({ ...formData, sessionId: e.target.value })} />
                     <Textarea label="Description" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} />

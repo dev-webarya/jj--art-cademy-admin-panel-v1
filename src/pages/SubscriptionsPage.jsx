@@ -118,7 +118,7 @@ const SubscriptionsPage = () => {
     };
 
     const columns = [
-        { key: 'id', label: 'ID', render: (val) => val?.slice(0, 8) + '...' },
+        // { key: 'id', label: 'ID', render: (val) => val?.slice(0, 8) + '...' },
         { key: 'studentName', label: 'Student', sortable: true },
         { key: 'rollNo', label: 'Roll No', render: (val) => val || '-' },
         {

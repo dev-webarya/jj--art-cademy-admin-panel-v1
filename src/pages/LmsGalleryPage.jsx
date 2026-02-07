@@ -135,9 +135,14 @@ const LmsGalleryPage = () => {
             render: (_, row) => (
                 <div className="flex gap-2">
                     {!row.isVerified && (
-                        <button onClick={() => handleVerify(row.id)} className="p-2 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg" title="Verify">
-                            <FaCheck />
-                        </button>
+                        <>
+                            <button onClick={() => handleVerify(row.id)} className="p-2 text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 rounded-lg" title="Approve">
+                                <FaCheck />
+                            </button>
+                            <button onClick={() => handleDelete(row.id)} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg" title="Reject">
+                                <FaTimes />
+                            </button>
+                        </>
                     )}
                     <button onClick={() => openModal('edit', row)} className="p-2 text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg">
                         <FaEdit />

@@ -210,9 +210,10 @@ const EnrollmentsPage = () => {
                 pagination={pagination}
                 onPageChange={setPage}
                 actions={
-                    <Button onClick={() => openModal('create')}>
-                        <FaPlus /> New Enrollment
-                    </Button>
+                    // <Button onClick={() => openModal('create')}>
+                    //     <FaPlus /> New Enrollment
+                    // </Button>
+                    null
                 }
             />
 

@@ -96,6 +96,14 @@ export const API_ENDPOINTS = {
         BY_SESSION: (sessionId) => `${API_PREFIX}/lms/attendance/session/${sessionId}`, // GET
         BY_STUDENT: (studentId) => `${API_PREFIX}/lms/attendance/student/${studentId}`, // GET with pageable
         MONTHLY: (studentId, year, month) => `${API_PREFIX}/lms/attendance/student/${studentId}/monthly/${year}/${month}`, // GET
+        LOGS: (studentId, year, month) => {
+            let url = `${API_PREFIX}/lms/attendance/student/${studentId}/logs`;
+            const params = new URLSearchParams();
+            if (year) params.append('year', year);
+            if (month) params.append('month', month);
+            const queryString = params.toString();
+            return queryString ? `${url}?${queryString}` : url;
+        },
         ELIGIBLE_STUDENTS: `${API_PREFIX}/lms/attendance/eligible-students`, // GET
     },
 

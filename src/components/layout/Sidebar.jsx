@@ -49,6 +49,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 { path: '/exhibitions', name: 'Exhibitions', icon: FaCalendarCheck },
                 { path: '/classes', name: 'Classes', icon: FaGraduationCap },
                 { path: '/orders', name: 'Orders', icon: FaShoppingCart },
+                order                { path: '/payments', name: 'Payments', icon: FaMoneyBillWave },
             ],
         },
     ];

@@ -6,6 +6,7 @@ import { Button, StatusBadge } from '../components/ui/FormComponents';
 import { useToast } from '../components/ui/Toast';
 import api, { getPaginated } from '../api/apiService';
 import { API_ENDPOINTS, ORDER_STATUS } from '../api/endpoints';
+import CreateOrderModal from '../components/CreateOrderModal';
 
 const OrdersPage = () => {
     const toast = useToast();
@@ -14,7 +15,10 @@ const OrdersPage = () => {
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
     const [modalOpen, setModalOpen] = useState(false);
+    const [createModalOpen, setCreateModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
+    const [shipOrderBy, setShipOrderBy] = useState(null);
+    const [shipmentData, setShipmentData] = useState({ carrier: '', trackingNumber: '' });
 
     const loadOrders = useCallback(async () => {
         setLoading(true);
@@ -38,13 +42,30 @@ const OrdersPage = () => {
         loadOrders();
     }, [loadOrders]);
 
-    const handleShip = async (id) => {
+    const handleShip = (id) => {
+        // Auto-generate tracking info to simplify the process (backend requires body)
+        const generatedTracking = `TRK-${Date.now().toString().slice(-6)}`;
+        setShipmentData({ carrier: 'FedEx', trackingNumber: generatedTracking });
+        setShipOrderBy(id);
+        setModalOpen(false); // Close details modal to avoid stacking issues
+    };
+
+    const confirmShip = async () => {
+        if (!shipmentData.carrier || !shipmentData.trackingNumber) {
+            toast.error('Please enter carrier and tracking number');
+            return;
+        }
+
         try {
-            await api.post(API_ENDPOINTS.ORDERS.SHIP(id));
+            await api.post(API_ENDPOINTS.ORDERS.SHIP(shipOrderBy), shipmentData);
             toast.success('Order marked as shipped');
+            setShipOrderBy(null);
+            if (modalOpen) setModalOpen(false); // Close details modal if open
             loadOrders();
         } catch (error) {
-            toast.error('Failed to ship order');
+            console.error('Ship error:', error);
+            const msg = error.data?.message || error.message || 'Failed to ship order';
+            toast.error(msg);
         }
     };
 
@@ -54,7 +75,9 @@ const OrdersPage = () => {
             toast.success('Order marked as delivered');
             loadOrders();
         } catch (error) {
-            toast.error('Failed to mark as delivered');
+            console.error('Deliver error:', error);
+            const msg = error.data?.message || error.message || 'Failed to mark as delivered';
+            toast.error(msg);
         }
     };
 
@@ -106,6 +129,9 @@ const OrdersPage = () => {
             <div className="mb-6">
                 <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Orders</h1>
                 <p className="text-gray-600 dark:text-gray-400">Manage customer orders and shipping</p>
+                <div className="mt-4 flex justify-end">
+                    <Button onClick={() => setCreateModalOpen(true)}>Create New Order</Button>
+                </div>
             </div>
 
             <DataTable
@@ -150,7 +176,7 @@ const OrdersPage = () => {
                                             <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
                                         </div>
                                         <p className="font-semibold text-gray-800 dark:text-white">
-                                            ₹{(item.price * item.quantity).toFixed(2)}
+                                            ₹{(Number(item.price || 0) * Number(item.quantity || 0)).toFixed(2)}
                                         </p>
                                     </div>
                                 )) || <p className="text-gray-500">No items</p>}
@@ -173,10 +199,22 @@ const OrdersPage = () => {
                             </div>
                         </div>
 
+                        {/* Payment Information (Placeholder based on available data) */}
+                        <div>
+                            <strong className="block mb-2">Payment Details:</strong>
+                            <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div><strong>Payment Status:</strong> <StatusBadge status={selectedOrder.paymentStatus || selectedOrder.status} /></div>
+                                    <div><strong>Payment Method:</strong> {selectedOrder.paymentMethod || 'N/A'}</div>
+                                    <div><strong>Transaction ID:</strong> {selectedOrder.paymentId || selectedOrder.transactionId || 'N/A'}</div>
+                                </div>
+                            </div>
+                        </div>
+
                         {/* Action Buttons */}
                         <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                             {selectedOrder.status === 'PROCESSING' && (
-                                <Button onClick={() => { handleShip(selectedOrder.id); setModalOpen(false); }}>
+                                <Button onClick={() => { handleShip(selectedOrder.id); }}>
                                     <FaTruck /> Mark as Shipped
                                 </Button>
                             )}
@@ -187,7 +225,47 @@ const OrdersPage = () => {
                             )}
                         </div>
                     </div>
-                )}
+                )
+                }
+            </Modal >
+
+            <CreateOrderModal
+                isOpen={createModalOpen}
+                onClose={() => setCreateModalOpen(false)}
+                onSuccess={loadOrders}
+            />
+
+            {/* Ship Order Modal */}
+            <Modal
+                isOpen={!!shipOrderBy}
+                onClose={() => setShipOrderBy(null)}
+                title="Ship Order"
+                size="md"
+            >
+                <div className="space-y-4">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Carrier</label>
+                        <input
+                            className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            placeholder="e.g. FedEx, UPS"
+                            value={shipmentData.carrier}
+                            onChange={e => setShipmentData({ ...shipmentData, carrier: e.target.value })}
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tracking Number</label>
+                        <input
+                            className="w-full p-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                            placeholder="Enter tracking number"
+                            value={shipmentData.trackingNumber}
+                            onChange={e => setShipmentData({ ...shipmentData, trackingNumber: e.target.value })}
+                        />
+                    </div>
+                    <div className="flex justify-end gap-2 mt-4">
+                        <Button variant="outline" onClick={() => setShipOrderBy(null)}>Cancel</Button>
+                        <Button onClick={confirmShip}>Confirm Shipment</Button>
+                    </div>
+                </div>
             </Modal>
         </div>
     );

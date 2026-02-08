@@ -20,6 +20,7 @@ import GalleriesPage from './pages/GalleriesPage';
 import ExhibitionsPage from './pages/ExhibitionsPage';
 import ClassesPage from './pages/ClassesPage';
 import OrdersPage from './pages/OrdersPage';
+import PaymentsPage from './pages/PaymentsPage';
 
 function App() {
   return (
@@ -60,6 +61,7 @@ function App() {
               <Route path="exhibitions" element={<ExhibitionsPage />} />
               <Route path="classes" element={<ClassesPage />} />
               <Route path="orders" element={<OrdersPage />} />
+              <Route path="payments" element={<PaymentsPage />} />
             </Route>
 
             {/* Catch all */}

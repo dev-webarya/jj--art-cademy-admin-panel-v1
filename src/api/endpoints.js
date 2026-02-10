@@ -122,18 +122,6 @@ export const API_ENDPOINTS = {
     },
 
     // ============================================
-    // LMS - GALLERY
-    // ============================================
-    LMS_GALLERY: {
-        GET_ALL: `${API_PREFIX}/lms/gallery`, // GET with pageable
-        CREATE: `${API_PREFIX}/lms/gallery`, // POST
-        GET_BY_ID: (id) => `${API_PREFIX}/lms/gallery/${id}`, // GET
-        UPDATE: (id) => `${API_PREFIX}/lms/gallery/${id}`, // PUT
-        DELETE: (id) => `${API_PREFIX}/lms/gallery/${id}`, // DELETE
-        VERIFY: (id) => `${API_PREFIX}/lms/gallery/${id}/verify`, // POST
-    },
-
-    // ============================================
     // ART WORKS
     // ============================================
     ART_WORKS: {
@@ -187,9 +175,11 @@ export const API_ENDPOINTS = {
     ART_GALLERIES: {
         GET_ALL: `${API_PREFIX}/art-galleries`, // GET with pageable
         CREATE: `${API_PREFIX}/art-galleries`, // POST
+        MY: `${API_PREFIX}/art-galleries/my`, // GET user's own galleries with ?status=PENDING|APPROVED|REJECTED
         GET_BY_ID: (id) => `${API_PREFIX}/art-galleries/${id}`, // GET
         UPDATE: (id) => `${API_PREFIX}/art-galleries/${id}`, // PUT
         DELETE: (id) => `${API_PREFIX}/art-galleries/${id}`, // DELETE
+        VERIFY: (id) => `${API_PREFIX}/art-galleries/${id}/verify`, // PUT with ?status=APPROVED|REJECTED
     },
 
     // ============================================

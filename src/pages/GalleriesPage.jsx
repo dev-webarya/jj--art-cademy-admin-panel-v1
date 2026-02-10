@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaMapMarkerAlt, FaGlobe, FaEnvelope, FaPhone } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaCheck, FaTimes, FaClock, FaCheckCircle, FaTimesCircle, FaFilter, FaUser } from 'react-icons/fa';
 import Modal from '../components/ui/Modal';
 import ImagePreviewModal from '../components/ui/ImagePreviewModal';
 import { Button, Input, Select, Textarea } from '../components/ui/FormComponents';
@@ -12,11 +12,13 @@ import { API_ENDPOINTS } from '../api/endpoints';
 const GalleriesPage = () => {
     const toast = useToast();
     const [items, setItems] = useState([]);
+    const [allItems, setAllItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(20);
+    const [statusFilter, setStatusFilter] = useState('APPROVED'); // Default to APPROVED for management focus
 
     // Gallery Modal State
     const [modalOpen, setModalOpen] = useState(false);
@@ -27,7 +29,6 @@ const GalleriesPage = () => {
         description: '',
         categoryId: '',
         imageUrl: '',
-        active: true,
     });
     const [formLoading, setFormLoading] = useState(false);
 
@@ -38,6 +39,10 @@ const GalleriesPage = () => {
         parentId: ''
     });
     const [categoryFormLoading, setCategoryFormLoading] = useState(false);
+
+    // Reject Modal
+    const [rejectModalOpen, setRejectModalOpen] = useState(false);
+    const [itemToReject, setItemToReject] = useState(null);
 
     // Image Preview State
     const [previewImage, setPreviewImage] = useState(null);
@@ -55,20 +60,29 @@ const GalleriesPage = () => {
     const loadItems = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await getPaginated(API_ENDPOINTS.ART_GALLERIES.GET_ALL, { page, size: pageSize });
-            setItems(response.content || []);
+            const response = await getPaginated(API_ENDPOINTS.ART_GALLERIES.GET_ALL, { page, size: 100 });
+            const data = response.content || [];
+            setAllItems(data);
+
+            // Filter by status (API uses 'status' field, not 'verificationStatus')
+            let filteredData = data;
+            if (statusFilter !== 'ALL') {
+                filteredData = data.filter(item => item.status === statusFilter);
+            }
+
+            setItems(filteredData);
             setPagination({
                 number: response.number || 0,
                 size: response.size || pageSize,
-                totalElements: response.totalElements || 0,
-                totalPages: response.totalPages || 1,
+                totalElements: filteredData.length,
+                totalPages: Math.ceil(filteredData.length / pageSize) || 1,
             });
         } catch (error) {
             toast.error('Failed to load galleries');
         } finally {
             setLoading(false);
         }
-    }, [page, pageSize, toast]);
+    }, [page, pageSize, statusFilter, toast]);
 
     useEffect(() => {
         loadCategories();
@@ -84,7 +98,6 @@ const GalleriesPage = () => {
                 description: item.description || '',
                 categoryId: item.categoryId || '',
                 imageUrl: item.imageUrl || '',
-                active: item.active ?? true,
             });
         } else if (mode === 'create') {
             setFormData({
@@ -92,7 +105,6 @@ const GalleriesPage = () => {
                 description: '',
                 categoryId: '',
                 imageUrl: '',
-                active: true,
             });
         }
         setModalOpen(true);
@@ -127,7 +139,7 @@ const GalleriesPage = () => {
             toast.success('Category created successfully');
             setCategoryModalOpen(false);
             setCategoryFormData({ name: '', parentId: '' });
-            loadCategories(); // Refresh categories list
+            loadCategories();
         } catch (error) {
             toast.error(error.message || 'Failed to create category');
         } finally {
@@ -146,14 +158,77 @@ const GalleriesPage = () => {
         }
     };
 
+    const handleApprove = async (id) => {
+        try {
+            await api.put(`${API_ENDPOINTS.ART_GALLERIES.VERIFY(id)}?status=APPROVED`);
+            toast.success('Gallery approved!');
+            loadItems();
+        } catch (error) {
+            toast.error('Failed to approve');
+        }
+    };
+
+    const openRejectModal = (item) => {
+        setItemToReject(item);
+        setRejectModalOpen(true);
+    };
+
+    const handleReject = async () => {
+        if (!itemToReject) return;
+        try {
+            await api.put(`${API_ENDPOINTS.ART_GALLERIES.VERIFY(itemToReject.id)}?status=REJECTED`);
+            toast.success('Gallery rejected');
+            setRejectModalOpen(false);
+            setItemToReject(null);
+            loadItems();
+        } catch (error) {
+            toast.error('Failed to reject');
+        }
+    };
+
     const categoryOptions = categories.map(c => ({ value: c.id, label: c.name }));
+
+    // Count stats
+    const pendingCount = allItems.filter(i => i.status === 'PENDING').length;
+    const approvedCount = allItems.filter(i => i.status === 'APPROVED').length;
+    const rejectedCount = allItems.filter(i => i.status === 'REJECTED').length;
+
+    const statusTabs = [
+        { value: 'ALL', label: 'All', count: allItems.length, icon: FaFilter, color: 'purple' },
+        { value: 'PENDING', label: 'Pending', count: pendingCount, icon: FaClock, color: 'yellow' },
+        { value: 'APPROVED', label: 'Approved', count: approvedCount, icon: FaCheckCircle, color: 'green' },
+        { value: 'REJECTED', label: 'Rejected', count: rejectedCount, icon: FaTimesCircle, color: 'red' },
+    ];
+
+    const getStatusBadge = (status) => {
+        switch (status) {
+            case 'APPROVED':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-semibold">
+                        <FaCheckCircle className="text-[10px]" /> Approved
+                    </span>
+                );
+            case 'REJECTED':
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-xs font-semibold">
+                        <FaTimesCircle className="text-[10px]" /> Rejected
+                    </span>
+                );
+            default:
+                return (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-xs font-semibold">
+                        <FaClock className="text-[10px]" /> Pending
+                    </span>
+                );
+        }
+    };
 
     return (
         <div className="animate-fadeIn p-6">
             <div className="flex justify-between items-center mb-6">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Art Galleries</h1>
-                    <p className="text-gray-600 dark:text-gray-400">Manage partner galleries and venues</p>
+                    <p className="text-gray-600 dark:text-gray-400">Manage all gallery content including partner galleries and approved student submissions. Edit, organize, and moderate published galleries.</p>
                 </div>
                 <div className="flex gap-3">
                     <Button variant="secondary" onClick={() => setCategoryModalOpen(true)}>
@@ -163,6 +238,30 @@ const GalleriesPage = () => {
                         <FaPlus /> Add Gallery
                     </Button>
                 </div>
+            </div>
+
+            {/* Status Filter Tabs */}
+            <div className="flex flex-wrap gap-2 mb-6">
+                {statusTabs.map((tab) => (
+                    <button
+                        key={tab.value}
+                        onClick={() => { setStatusFilter(tab.value); setPage(0); }}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${statusFilter === tab.value
+                            ? tab.color === 'yellow' ? 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400' :
+                                tab.color === 'green' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                    tab.color === 'red' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                        'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                            : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            }`}
+                    >
+                        <tab.icon className="text-sm" />
+                        {tab.label}
+                        <span className={`px-2 py-0.5 rounded-full text-xs ${statusFilter === tab.value ? 'bg-white/50 dark:bg-black/20' : 'bg-gray-200 dark:bg-gray-700'
+                            }`}>
+                            {tab.count}
+                        </span>
+                    </button>
+                ))}
             </div>
 
             {loading ? (
@@ -184,47 +283,103 @@ const GalleriesPage = () => {
                                         setPreviewTitle(item.name);
                                     }}
                                 />
+                                <div className="absolute top-2 left-2">
+                                    {getStatusBadge(item.status)}
+                                </div>
                                 <div className="absolute top-2 right-2 bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded-full text-xs font-semibold shadow-sm text-gray-800 dark:text-gray-200">
                                     {item.categoryName || 'Uncategorized'}
                                 </div>
                             </div>
 
                             {/* Content Body */}
-                            <div className="p-5 space-y-3">
-                                <div className="flex justify-between items-start">
-                                    <h3 className="text-xl font-bold text-gray-800 dark:text-white line-clamp-1" title={item.name}>
-                                        {item.name}
-                                    </h3>
-                                    <span className={`px-2 py-0.5 text-xs rounded-full ${item.active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>
-                                        {item.active ? 'Active' : 'Inactive'}
-                                    </span>
-                                </div>
+                            <div className="p-5">
+                                <h3 className="text-xl font-bold text-gray-800 dark:text-white line-clamp-1 mb-2" title={item.name}>
+                                    {item.name}
+                                </h3>
 
-                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 min-h-[3rem]">
+                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 min-h-[2.5rem] mb-2">
                                     {item.description || 'No description provided.'}
                                 </p>
 
-                                {/* Removed unsupported fields from view to match data model */}
+                                {/* Uploaded By Info */}
+                                {item.userName && (
+                                    <p className="text-xs text-gray-500 dark:text-gray-500 mb-3 flex items-center gap-1">
+                                        <FaUser className="text-xs" />
+                                        <span>Uploaded by: <span className="font-medium">{item.userName}</span></span>
+                                    </p>
+                                )}
 
-                                <div className="flex justify-end pt-3 gap-2 border-t border-gray-100 dark:border-gray-700">
-                                    <button
-                                        onClick={() => openModal('edit', item)}
-                                        className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
-                                    >
-                                        <FaEdit />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(item.id)}
-                                        className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                                    >
-                                        <FaTrash />
-                                    </button>
+                                {/* Action Buttons - Compact Icons */}
+                                <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+                                    {/* Status Action Icons */}
+                                    <div className="flex items-center gap-1">
+                                        {item.status !== 'APPROVED' ? (
+                                            <>
+                                                <button
+                                                    onClick={() => handleApprove(item.id)}
+                                                    className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors shadow-sm"
+                                                    title="Approve"
+                                                >
+                                                    <FaCheck className="text-sm" />
+                                                </button>
+                                                {item.status !== 'REJECTED' && (
+                                                    <button
+                                                        onClick={() => openRejectModal(item)}
+                                                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-sm"
+                                                        title="Reject"
+                                                    >
+                                                        <FaTimes className="text-sm" />
+                                                    </button>
+                                                )}
+                                            </>
+                                        ) : (
+                                            <button
+                                                onClick={() => openRejectModal(item)}
+                                                className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors shadow-sm"
+                                                title="Revoke Approval"
+                                            >
+                                                <FaTimes className="text-sm" />
+                                            </button>
+                                        )}
+                                    </div>
+
+                                    {/* Edit/Delete Icons */}
+                                    <div className="flex items-center gap-1">
+                                        <button
+                                            onClick={() => openModal('edit', item)}
+                                            className="p-2 text-purple-600 hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                                            title="Edit"
+                                        >
+                                            <FaEdit className="text-sm" />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(item.id)}
+                                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                            title="Delete"
+                                        >
+                                            <FaTrash className="text-sm" />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     ))}
                 </div>
-            )}
+            )
+            }
+
+            {
+                items.length === 0 && !loading && (
+                    <div className="text-center py-20 text-gray-500 dark:text-gray-400">
+                        <p className="text-lg font-semibold">
+                            {statusFilter === 'PENDING' ? 'No pending galleries' :
+                                statusFilter === 'APPROVED' ? 'No approved galleries' :
+                                    statusFilter === 'REJECTED' ? 'No rejected galleries' : 'No galleries found'}
+                        </p>
+                        <p className="text-sm">Add a new gallery to get started.</p>
+                    </div>
+                )
+            }
 
             <Pagination
                 pagination={pagination}
@@ -277,16 +432,6 @@ const GalleriesPage = () => {
                         onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         rows={4}
                     />
-
-                    <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                            type="checkbox"
-                            checked={formData.active}
-                            onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                            className="rounded text-purple-600 focus:ring-purple-500"
-                        />
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Active</span>
-                    </label>
                 </form>
             </Modal>
 
@@ -319,6 +464,41 @@ const GalleriesPage = () => {
                         placeholder="Enter parent ID if applicable"
                     />
                 </form>
+            </Modal>
+
+            {/* Reject Confirmation Modal */}
+            <Modal
+                isOpen={rejectModalOpen}
+                onClose={() => setRejectModalOpen(false)}
+                title="Reject Gallery"
+                size="sm"
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={() => setRejectModalOpen(false)}>Cancel</Button>
+                        <Button variant="danger" onClick={handleReject}>
+                            <FaTimes /> Reject
+                        </Button>
+                    </>
+                }
+            >
+                <div className="space-y-4">
+                    <div className="p-4 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                        <p className="text-yellow-700 dark:text-yellow-400 text-sm">
+                            This will mark the gallery as rejected. It can be re-approved later.
+                        </p>
+                    </div>
+                    {itemToReject && (
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                            {itemToReject.imageUrl && (
+                                <img src={itemToReject.imageUrl} alt="" className="w-12 h-12 object-cover rounded" />
+                            )}
+                            <div>
+                                <p className="font-medium text-gray-800 dark:text-white">{itemToReject.name}</p>
+                                <p className="text-sm text-gray-500">{itemToReject.categoryName || 'No category'}</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
             </Modal>
 
             {/* Image Preview Modal */}

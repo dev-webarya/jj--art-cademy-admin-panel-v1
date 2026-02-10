@@ -3,7 +3,7 @@
 // Complete API Configuration from OpenAPI Docs
 // ============================================
 
-// Use empty base URL for Vite proxy (proxy forwards /api to http://localhost:8095)
+// Use empty base URL for Vite proxy (proxy forwards /api to http://93.127.194.118:8095)
 // For production, set this to your backend URL
 export const BASE_URL = '';
 export const API_PREFIX = '/api/v1';

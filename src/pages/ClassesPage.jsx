@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaClock, FaUserGraduate } from 'react-icons/fa';
+import { useNavigate } from 'react-router-dom';
+import { FaPlus, FaEdit, FaTrash, FaClock, FaUserGraduate, FaCalendarAlt } from 'react-icons/fa';
 import Modal from '../components/ui/Modal';
 import ImagePreviewModal from '../components/ui/ImagePreviewModal';
 import { Button, Input, Select, Textarea } from '../components/ui/FormComponents';
@@ -11,6 +12,7 @@ import { API_ENDPOINTS } from '../api/endpoints';
 
 const ClassesPage = () => {
     const toast = useToast();
+    const navigate = useNavigate();
     const [items, setItems] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -265,6 +267,13 @@ const ClassesPage = () => {
                                     </div>
 
                                     <div className="flex gap-2">
+                                        <button
+                                            onClick={() => navigate('/sessions', { state: { classId: item.id } })}
+                                            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                            title="View Sessions"
+                                        >
+                                            <FaCalendarAlt />
+                                        </button>
                                         <button
                                             onClick={() => openModal('edit', item)}
                                             className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/30 rounded-lg transition-colors"

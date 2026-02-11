@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaPlay, FaStop, FaCheck } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -9,15 +10,18 @@ import { API_ENDPOINTS, SESSION_STATUS } from '../api/endpoints';
 
 const SessionsPage = () => {
     const toast = useToast();
+    const location = useLocation();
     const [sessions, setSessions] = useState([]);
     const [classes, setClasses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
+    const [selectedClassId, setSelectedClassId] = useState(location.state?.classId || ''); // Filter state
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('view');
     const [selectedItem, setSelectedItem] = useState(null);
     const [formData, setFormData] = useState({
+        classId: '',
         sessionDate: '',
         startTime: '',
         endTime: '',
@@ -40,7 +44,9 @@ const SessionsPage = () => {
     const loadSessions = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await getPaginated(API_ENDPOINTS.SESSIONS.GET_ALL, { page, size: 20 });
+            const params = { page, size: 20 };
+            if (selectedClassId) params.classId = selectedClassId; // Add filter if API supports it
+            const response = await getPaginated(API_ENDPOINTS.SESSIONS.GET_ALL, params);
             setSessions(response.content || []);
             setPagination({
                 number: response.number || 0,
@@ -53,7 +59,7 @@ const SessionsPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, toast]);
+    }, [page, selectedClassId, toast]);
 
     useEffect(() => {
         loadClasses();
@@ -75,6 +81,7 @@ const SessionsPage = () => {
         setSelectedItem(item);
         if (mode === 'edit' && item) {
             setFormData({
+                classId: item.classId || '',
                 sessionDate: item.sessionDate || '',
                 startTime: item.startTime || '',
                 endTime: item.endTime || '',
@@ -85,6 +92,7 @@ const SessionsPage = () => {
             });
         } else if (mode === 'create') {
             setFormData({
+                classId: '',
                 sessionDate: '',
                 startTime: '',
                 endTime: '',
@@ -102,6 +110,7 @@ const SessionsPage = () => {
         setFormLoading(true);
         try {
             const requestData = {
+                classId: formData.classId,
                 sessionDate: formData.sessionDate,
                 startTime: formData.startTime,
                 endTime: formData.endTime,
@@ -188,6 +197,16 @@ const SessionsPage = () => {
                 <p className="text-gray-600 dark:text-gray-400">Schedule and manage class sessions</p>
             </div>
 
+            <div className="flex gap-4 mb-4">
+                <Select
+                    placeholder="Filter by Class"
+                    value={selectedClassId}
+                    onChange={(e) => setSelectedClassId(e.target.value)}
+                    options={classOptions}
+                    className="w-64"
+                />
+            </div>
+
             <DataTable
                 columns={columns}
                 data={sessions}
@@ -217,6 +236,10 @@ const SessionsPage = () => {
             >
                 {modalMode === 'view' ? (
                     <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Class</span>
+                            <span className="font-medium text-gray-900 dark:text-white text-base">{classes.find(c => c.id === selectedItem?.classId)?.title || selectedItem?.className || classes.find(c => c.id === selectedItem?.classId)?.name || '-'}</span>
+                        </div>
                         <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Topic</span>
                             <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.topic}</span>
@@ -268,6 +291,14 @@ const SessionsPage = () => {
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
+                        <Select
+                            label="Class"
+                            value={formData.classId}
+                            onChange={(e) => setFormData({ ...formData, classId: e.target.value })}
+                            options={classOptions}
+                            required
+                            placeholder="Select Class"
+                        />
                         <Input label="Topic" value={formData.topic} onChange={(e) => setFormData({ ...formData, topic: e.target.value })} required />
                         <div className="grid grid-cols-3 gap-4">
                             <Input label="Date" type="date" value={formData.sessionDate} onChange={(e) => setFormData({ ...formData, sessionDate: e.target.value })} required />

@@ -6,9 +6,11 @@ import { Button, Input, StatusBadge, Card } from '../components/ui/FormComponent
 import { useToast } from '../components/ui/Toast';
 import api, { getPaginated } from '../api/apiService';
 import { API_ENDPOINTS } from '../api/endpoints';
+import StudentAttendanceHistory from '../components/attendance/StudentAttendanceHistory';
 
 const AttendancePage = () => {
     const toast = useToast();
+    const [viewMode, setViewMode] = useState('SESSIONS'); // 'SESSIONS' or 'HISTORY'
     const [sessions, setSessions] = useState([]);
     const [eligibleStudents, setEligibleStudents] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -196,43 +198,71 @@ const AttendancePage = () => {
 
     return (
         <div className="animate-fadeIn">
-            <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Attendance Management</h1>
-                <p className="text-gray-600 dark:text-gray-400">Take attendance for class sessions</p>
+            <div className="mb-6 flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Attendance Management</h1>
+                    <p className="text-gray-600 dark:text-gray-400">Manage class attendance and view student history</p>
+                </div>
+                <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                    <button
+                        onClick={() => setViewMode('SESSIONS')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${viewMode === 'SESSIONS'
+                            ? 'bg-white dark:bg-gray-600 shadow text-purple-600 dark:text-purple-300'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                            }`}
+                    >
+                        Class Sessions
+                    </button>
+                    <button
+                        onClick={() => setViewMode('HISTORY')}
+                        className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${viewMode === 'HISTORY'
+                            ? 'bg-white dark:bg-gray-600 shadow text-purple-600 dark:text-purple-300'
+                            : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                            }`}
+                    >
+                        Student History
+                    </button>
+                </div>
             </div>
 
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                <Card className="bg-gradient-to-br from-purple-500 to-pink-600 text-white">
-                    <h3 className="text-lg font-semibold mb-1">Total Sessions</h3>
-                    <p className="text-3xl font-bold">{pagination?.totalElements || 0}</p>
-                </Card>
-                <Card className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
-                    <h3 className="text-lg font-semibold mb-1">Eligible Students</h3>
-                    <p className="text-3xl font-bold">{eligibleStudents.length}</p>
-                </Card>
-                <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white">
-                    <h3 className="text-lg font-semibold mb-1">Attendance Taken</h3>
-                    <p className="text-3xl font-bold">
-                        {sessions.filter(s => s.attendanceTaken).length}/{sessions.length}
-                    </p>
-                </Card>
-            </div>
+            {viewMode === 'SESSIONS' ? (
+                <>
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <Card className="bg-gradient-to-br from-purple-500 to-pink-600 text-white">
+                            <h3 className="text-lg font-semibold mb-1">Total Sessions</h3>
+                            <p className="text-3xl font-bold">{pagination?.totalElements || 0}</p>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
+                            <h3 className="text-lg font-semibold mb-1">Eligible Students</h3>
+                            <p className="text-3xl font-bold">{eligibleStudents.length}</p>
+                        </Card>
+                        <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white">
+                            <h3 className="text-lg font-semibold mb-1">Attendance Taken</h3>
+                            <p className="text-3xl font-bold">
+                                {sessions.filter(s => s.attendanceTaken).length}/{sessions.length}
+                            </p>
+                        </Card>
+                    </div>
 
-            {/* Sessions Table */}
-            <DataTable
-                columns={columns}
-                data={sessions}
-                loading={loading}
-                pagination={pagination}
-                onPageChange={setPage}
-                emptyMessage="No sessions found"
-                actions={
-                    <Button variant="secondary" onClick={() => { loadSessions(); loadEligibleStudents(); }}>
-                        <FaSync /> Refresh
-                    </Button>
-                }
-            />
+                    {/* Sessions Table */}
+                    <DataTable
+                        columns={columns}
+                        data={sessions}
+                        loading={loading}
+                        pagination={pagination}
+                        onPageChange={setPage}
+                        emptyMessage="No sessions found"
+                        actions={
+                            <Button variant="secondary" onClick={() => { loadSessions(); loadEligibleStudents(); }}>
+                                <FaSync /> Refresh
+                            </Button>
+                        }
+                    />
+                </>
+            ) : (
+                <StudentAttendanceHistory />
+            )}
 
             {/* Take Attendance Modal */}
             <Modal

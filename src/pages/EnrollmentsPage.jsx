@@ -11,6 +11,7 @@ const EnrollmentsPage = () => {
     const toast = useToast();
     const [enrollments, setEnrollments] = useState([]);
     const [classes, setClasses] = useState([]);
+    const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
@@ -42,6 +43,16 @@ const EnrollmentsPage = () => {
         }
     }, []);
 
+    // Load users for dropdown
+    const loadUsers = useCallback(async () => {
+        try {
+            const response = await getPaginated(API_ENDPOINTS.USERS.GET_ALL, { size: 100 }); // Fetch top 100 users for now
+            setUsers(response.content || []);
+        } catch (error) {
+            console.error('Failed to load users:', error);
+        }
+    }, []);
+
     const loadEnrollments = useCallback(async () => {
         setLoading(true);
         try {
@@ -62,8 +73,9 @@ const EnrollmentsPage = () => {
 
     useEffect(() => {
         loadClasses();
+        loadUsers();
         loadEnrollments();
-    }, [loadClasses, loadEnrollments]);
+    }, [loadClasses, loadUsers, loadEnrollments]);
 
     const handleStatusUpdate = async (enrollmentId, status) => {
         try {
@@ -291,11 +303,15 @@ const EnrollmentsPage = () => {
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <Input
-                            label="User ID"
+                        <Select
+                            label="Student"
                             value={formData.userId}
                             onChange={(e) => setFormData({ ...formData, userId: e.target.value })}
-                            placeholder="Enter student's user ID"
+                            options={users.map(u => ({
+                                value: u.id,
+                                label: u.firstName ? `${u.firstName} ${u.lastName} (${u.email})` : u.email
+                            }))}
+                            placeholder="Select a student..."
                             required
                         />
                         <Select

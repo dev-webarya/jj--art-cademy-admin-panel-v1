@@ -3,7 +3,7 @@
 // Complete API Configuration from OpenAPI Docs
 // ============================================
 
-// Use empty base URL for Vite proxy (proxy forwards /api to http://localhost:8095)
+// Use empty base URL for Vite proxy (proxy forwards /api to http://93.127.194.118:8095)
 // For production, set this to your backend URL
 export const BASE_URL = '';
 export const API_PREFIX = '/api/v1';
@@ -72,7 +72,6 @@ export const API_ENDPOINTS = {
         BY_STUDENT: (studentId) => `${API_PREFIX}/lms/subscriptions/student/${studentId}`, // GET
         ACTIVE_BY_STUDENT: (studentId) => `${API_PREFIX}/lms/subscriptions/student/${studentId}/active`, // GET
         OVER_LIMIT: `${API_PREFIX}/lms/subscriptions/over-limit`, // GET
-        BY_MONTH: (year, month) => `${API_PREFIX}/lms/subscriptions/month/${year}/${month}`, // GET
         RENEW: (enrollmentId) => `${API_PREFIX}/lms/subscriptions/enrollment/${enrollmentId}/renew`, // POST
     },
 
@@ -86,6 +85,10 @@ export const API_ENDPOINTS = {
         UPDATE: (id) => `${API_PREFIX}/lms/sessions/${id}`, // PUT
         DELETE: (id) => `${API_PREFIX}/lms/sessions/${id}`, // DELETE
         UPDATE_STATUS: (id) => `${API_PREFIX}/lms/sessions/${id}/status`, // PATCH with status, reason
+        GET_WITH_ATTENDANCE: (id) => `${API_PREFIX}/lms/sessions/${id}/attendance`, // GET
+        UPCOMING: `${API_PREFIX}/lms/sessions/upcoming`, // GET
+        RANGE: `${API_PREFIX}/lms/sessions/range`, // GET with startDate, endDate
+        BY_DATE: (date) => `${API_PREFIX}/lms/sessions/date/${date}`, // GET
     },
 
     // ============================================
@@ -95,7 +98,14 @@ export const API_ENDPOINTS = {
         MARK: `${API_PREFIX}/lms/attendance`, // POST
         BY_SESSION: (sessionId) => `${API_PREFIX}/lms/attendance/session/${sessionId}`, // GET
         BY_STUDENT: (studentId) => `${API_PREFIX}/lms/attendance/student/${studentId}`, // GET with pageable
-        MONTHLY: (studentId, year, month) => `${API_PREFIX}/lms/attendance/student/${studentId}/monthly/${year}/${month}`, // GET
+        LOGS: (studentId, year, month) => {
+            let url = `${API_PREFIX}/lms/attendance/student/${studentId}/logs`;
+            const params = new URLSearchParams();
+            if (year) params.append('year', year);
+            if (month) params.append('month', month);
+            const queryString = params.toString();
+            return queryString ? `${url}?${queryString}` : url;
+        },
         ELIGIBLE_STUDENTS: `${API_PREFIX}/lms/attendance/eligible-students`, // GET
     },
 
@@ -114,18 +124,6 @@ export const API_ENDPOINTS = {
     },
 
     // ============================================
-    // LMS - GALLERY
-    // ============================================
-    LMS_GALLERY: {
-        GET_ALL: `${API_PREFIX}/lms/gallery`, // GET with pageable
-        CREATE: `${API_PREFIX}/lms/gallery`, // POST
-        GET_BY_ID: (id) => `${API_PREFIX}/lms/gallery/${id}`, // GET
-        UPDATE: (id) => `${API_PREFIX}/lms/gallery/${id}`, // PUT
-        DELETE: (id) => `${API_PREFIX}/lms/gallery/${id}`, // DELETE
-        VERIFY: (id) => `${API_PREFIX}/lms/gallery/${id}/verify`, // POST
-    },
-
-    // ============================================
     // ART WORKS
     // ============================================
     ART_WORKS: {
@@ -134,8 +132,6 @@ export const API_ENDPOINTS = {
         GET_BY_ID: (id) => `${API_PREFIX}/art-works/${id}`, // GET
         UPDATE: (id) => `${API_PREFIX}/art-works/${id}`, // PUT
         DELETE: (id) => `${API_PREFIX}/art-works/${id}`, // DELETE
-        INCREMENT_VIEWS: (id) => `${API_PREFIX}/art-works/${id}/views`, // POST
-        INCREMENT_LIKES: (id) => `${API_PREFIX}/art-works/${id}/likes`, // POST
     },
 
     // ============================================
@@ -179,9 +175,11 @@ export const API_ENDPOINTS = {
     ART_GALLERIES: {
         GET_ALL: `${API_PREFIX}/art-galleries`, // GET with pageable
         CREATE: `${API_PREFIX}/art-galleries`, // POST
+        MY: `${API_PREFIX}/art-galleries/my`, // GET user's own galleries with ?status=PENDING|APPROVED|REJECTED
         GET_BY_ID: (id) => `${API_PREFIX}/art-galleries/${id}`, // GET
         UPDATE: (id) => `${API_PREFIX}/art-galleries/${id}`, // PUT
         DELETE: (id) => `${API_PREFIX}/art-galleries/${id}`, // DELETE
+        VERIFY: (id) => `${API_PREFIX}/art-galleries/${id}/verify`, // PUT with ?status=APPROVED|REJECTED
     },
 
     // ============================================

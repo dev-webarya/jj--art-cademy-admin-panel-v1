@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { FaEye, FaTruck, FaCheckCircle } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
-import { Button, StatusBadge } from '../components/ui/FormComponents';
+import { Button, StatusBadge, Input, Textarea } from '../components/ui/FormComponents';
 import { useToast } from '../components/ui/Toast';
 import api, { getPaginated } from '../api/apiService';
 import { API_ENDPOINTS, ORDER_STATUS } from '../api/endpoints';
@@ -15,6 +15,16 @@ const OrdersPage = () => {
     const [page, setPage] = useState(0);
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
+
+    // Shipment Modal State
+    const [shipmentModalOpen, setShipmentModalOpen] = useState(false);
+    const [shipmentData, setShipmentData] = useState({
+        trackingNumber: '',
+        carrier: '',
+        notes: ''
+    });
+    const [shipmentLoading, setShipmentLoading] = useState(false);
+    const [orderToShip, setOrderToShip] = useState(null);
 
     const loadOrders = useCallback(async () => {
         setLoading(true);
@@ -38,13 +48,29 @@ const OrdersPage = () => {
         loadOrders();
     }, [loadOrders]);
 
-    const handleShip = async (id) => {
+    const handleShipClick = (order) => {
+        setOrderToShip(order);
+        setShipmentData({ trackingNumber: '', carrier: '', notes: '' });
+        setShipmentModalOpen(true);
+    };
+
+    const handleShipSubmit = async (e) => {
+        e.preventDefault();
+        if (!orderToShip) return;
+
+        setShipmentLoading(true);
         try {
-            await api.post(API_ENDPOINTS.ORDERS.SHIP(id));
+            await api.post(API_ENDPOINTS.ORDERS.SHIP(orderToShip.id), shipmentData);
             toast.success('Order marked as shipped');
+            setShipmentModalOpen(false);
+            if (selectedOrder && selectedOrder.id === orderToShip.id) {
+                setModalOpen(false); // Close details modal if open
+            }
             loadOrders();
         } catch (error) {
-            toast.error('Failed to ship order');
+            toast.error(error.message || 'Failed to ship order');
+        } finally {
+            setShipmentLoading(false);
         }
     };
 
@@ -64,11 +90,10 @@ const OrdersPage = () => {
     };
 
     const columns = [
-        { key: 'id', label: 'Order ID', render: (val) => val?.slice(0, 8) + '...' },
-        { key: 'customerName', label: 'Customer', sortable: true, render: (val, row) => val || row.userName || '-' },
-        { key: 'customerEmail', label: 'Email', render: (val) => val || '-' },
+        { key: 'orderNumber', label: 'Order #', render: (val) => val || '-' },
+        { key: 'userEmail', label: 'Customer', sortable: true, render: (val) => val || '-' },
         {
-            key: 'totalAmount',
+            key: 'totalPrice',
             label: 'Total',
             render: (val) => val ? `₹${parseFloat(val).toFixed(2)}` : '-'
         },
@@ -87,7 +112,7 @@ const OrdersPage = () => {
                         <FaEye />
                     </button>
                     {row.status === 'PROCESSING' && (
-                        <button onClick={() => handleShip(row.id)} className="p-2 text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg" title="Mark as Shipped">
+                        <button onClick={() => handleShipClick(row)} className="p-2 text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg" title="Mark as Shipped">
                             <FaTruck />
                         </button>
                     )}
@@ -124,59 +149,89 @@ const OrdersPage = () => {
                 size="lg"
             >
                 {selectedOrder && (
-                    <div className="space-y-4">
-                        <div className="grid grid-cols-2 gap-4">
-                            <div><strong>Order ID:</strong> {selectedOrder.id}</div>
-                            <div><strong>Status:</strong> <StatusBadge status={selectedOrder.status} /></div>
-                            <div><strong>Customer:</strong> {selectedOrder.customerName || selectedOrder.userName || '-'}</div>
-                            <div><strong>Email:</strong> {selectedOrder.customerEmail || '-'}</div>
-                            <div><strong>Phone:</strong> {selectedOrder.customerPhone || '-'}</div>
-                            <div><strong>Date:</strong> {selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleString() : '-'}</div>
+                    <div className="space-y-6">
+                        {/* Header Info */}
+                        <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                            <div><strong className="text-gray-500">Order #:</strong> <span className="text-gray-900 dark:text-white font-medium">{selectedOrder.orderNumber}</span></div>
+                            <div><strong className="text-gray-500">Status:</strong> <StatusBadge status={selectedOrder.status} /></div>
+                            <div><strong className="text-gray-500">Email:</strong> <span className="text-gray-900 dark:text-white">{selectedOrder.userEmail}</span></div>
+                            <div><strong className="text-gray-500">Date:</strong> <span className="text-gray-900 dark:text-white">{selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleString() : '-'}</span></div>
+                            {selectedOrder.trackingNumber && (
+                                <div className="col-span-2 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                                    <strong className="text-gray-500">Tracking:</strong> <span className="text-purple-600 font-medium">{selectedOrder.carrier} - {selectedOrder.trackingNumber}</span>
+                                </div>
+                            )}
                         </div>
 
-                        <div>
-                            <strong>Shipping Address:</strong>
-                            <p className="text-gray-600 dark:text-gray-400">{selectedOrder.shippingAddress || '-'}</p>
+                        {/* Addresses */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Shipping Address</h3>
+                                <p className="text-gray-700 dark:text-gray-300 text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                                    {selectedOrder.shippingAddress || 'N/A'}
+                                </p>
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Billing Address</h3>
+                                <p className="text-gray-700 dark:text-gray-300 text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                                    {selectedOrder.billingAddress || 'Same as shipping'}
+                                </p>
+                            </div>
                         </div>
 
                         {/* Order Items */}
                         <div>
-                            <strong className="block mb-2">Items:</strong>
-                            <div className="bg-gray-50 dark:bg-gray-700 rounded-xl p-4 space-y-3">
+                            <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Items</h3>
+                            <div className="space-y-3">
                                 {selectedOrder.items?.map((item, idx) => (
-                                    <div key={idx} className="flex justify-between items-center pb-3 border-b border-gray-200 dark:border-gray-600 last:border-0 last:pb-0">
-                                        <div>
-                                            <p className="font-medium text-gray-800 dark:text-white">{item.productName || item.name}</p>
-                                            <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                                    <div key={idx} className="flex gap-4 p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                                        <div className="w-16 h-16 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden">
+                                            {item.imageUrl ? (
+                                                <img src={item.imageUrl} alt={item.itemName} className="w-full h-full object-cover" />
+                                            ) : (
+                                                <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">No Img</div>
+                                            )}
                                         </div>
-                                        <p className="font-semibold text-gray-800 dark:text-white">
-                                            ₹{(item.price * item.quantity).toFixed(2)}
-                                        </p>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-gray-900 dark:text-white truncate">{item.itemName}</p>
+                                            <p className="text-xs text-gray-500">{item.itemType} • Qty: {item.quantity}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className="font-semibold text-gray-900 dark:text-white">₹{item.subtotal?.toFixed(2)}</p>
+                                            <p className="text-xs text-gray-500">₹{item.unitPrice} ea</p>
+                                        </div>
                                     </div>
-                                )) || <p className="text-gray-500">No items</p>}
+                                ))}
+                            </div>
+                            <div className="flex justify-end mt-4">
+                                <div className="text-right">
+                                    <span className="text-gray-500 mr-4">Total Amount:</span>
+                                    <span className="text-2xl font-bold text-gray-900 dark:text-white">₹{selectedOrder.totalPrice?.toFixed(2)}</span>
+                                </div>
                             </div>
                         </div>
 
-                        {/* Totals */}
-                        <div className="flex justify-end">
-                            <div className="text-right space-y-1">
-                                <p className="text-gray-600 dark:text-gray-400">
-                                    Subtotal: ₹{selectedOrder.subtotal?.toFixed(2) || '0.00'}
-                                </p>
-                                <p className="text-gray-600 dark:text-gray-400">
-                                    Shipping: ₹{selectedOrder.shippingCost?.toFixed(2) || '0.00'}
-                                </p>
-                                <p className="text-xl font-bold text-gray-800 dark:text-white">
-                                    Total: ₹{selectedOrder.totalAmount?.toFixed(2) || '0.00'}
-                                </p>
-
+                        {/* Status History */}
+                        {selectedOrder.statusHistory && selectedOrder.statusHistory.length > 0 && (
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Order History</h3>
+                                <div className="space-y-4 border-l-2 border-gray-200 dark:border-gray-700 ml-2 pl-4 py-1">
+                                    {selectedOrder.statusHistory.map((history, idx) => (
+                                        <div key={idx} className="relative">
+                                            <div className="absolute -left-[21px] top-1.5 w-3 h-3 rounded-full bg-purple-500 ring-2 ring-white dark:ring-gray-900" />
+                                            <p className="text-sm font-medium text-gray-900 dark:text-white">{history.status.replace('_', ' ')}</p>
+                                            <p className="text-xs text-gray-500">{new Date(history.changedAt).toLocaleString()}</p>
+                                            {history.notes && <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 bg-gray-50 dark:bg-gray-800 p-2 rounded">{history.notes}</p>}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Action Buttons */}
                         <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
                             {selectedOrder.status === 'PROCESSING' && (
-                                <Button onClick={() => { handleShip(selectedOrder.id); setModalOpen(false); }}>
+                                <Button onClick={() => { handleShipClick(selectedOrder); }}>
                                     <FaTruck /> Mark as Shipped
                                 </Button>
                             )}
@@ -188,6 +243,44 @@ const OrdersPage = () => {
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* Shipment Modal */}
+            <Modal
+                isOpen={shipmentModalOpen}
+                onClose={() => setShipmentModalOpen(false)}
+                title="Ship Order"
+                size="md"
+                footer={
+                    <>
+                        <Button variant="secondary" onClick={() => setShipmentModalOpen(false)}>Cancel</Button>
+                        <Button onClick={handleShipSubmit} loading={shipmentLoading}>Confirm Shipment</Button>
+                    </>
+                }
+            >
+                <form className="space-y-4">
+                    <Input
+                        label="Tracking Number"
+                        value={shipmentData.trackingNumber}
+                        onChange={(e) => setShipmentData({ ...shipmentData, trackingNumber: e.target.value })}
+                        required
+                        placeholder="e.g. TRK123456789"
+                    />
+                    <Input
+                        label="Carrier Name"
+                        value={shipmentData.carrier}
+                        onChange={(e) => setShipmentData({ ...shipmentData, carrier: e.target.value })}
+                        required
+                        placeholder="e.g. FedEx, BlueDart"
+                    />
+                    <Textarea
+                        label="Notes (Optional)"
+                        value={shipmentData.notes}
+                        onChange={(e) => setShipmentData({ ...shipmentData, notes: e.target.value })}
+                        placeholder="Any additional shipping notes..."
+                        rows={3}
+                    />
+                </form>
             </Modal>
         </div>
     );

@@ -17,6 +17,8 @@ const ArtWorksPage = () => {
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(20);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
 
     // Art Work Modal State
     const [modalOpen, setModalOpen] = useState(false);
@@ -62,7 +64,11 @@ const ArtWorksPage = () => {
     const loadItems = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await getPaginated(API_ENDPOINTS.ART_WORKS.GET_ALL, { page, size: pageSize });
+            const params = { page, size: pageSize };
+            if (searchTerm) params.search = searchTerm;
+            if (selectedCategory) params.categoryId = selectedCategory;
+
+            const response = await getPaginated(API_ENDPOINTS.ART_WORKS.GET_ALL, params);
             setItems(response.content || []);
             setPagination({
                 number: response.number || 0,
@@ -75,7 +81,7 @@ const ArtWorksPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, pageSize, toast]);
+    }, [page, pageSize, searchTerm, selectedCategory, toast]);
 
     useEffect(() => {
         loadCategories();
@@ -190,6 +196,33 @@ const ArtWorksPage = () => {
                     </Button>
                     <Button onClick={() => openModal('create')}>
                         <FaPlus /> Add Art Work
+                    </Button>
+                </div>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="flex-1">
+                    <Input
+                        placeholder="Search artworks..."
+                        value={searchTerm}
+                        onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
+                        className="w-full"
+                    />
+                </div>
+                <div className="w-full md:w-64">
+                    <Select
+                        placeholder="Filter by Category"
+                        value={selectedCategory}
+                        onChange={(e) => { setSelectedCategory(e.target.value); setPage(0); }}
+                        options={categories.map(c => ({ value: c.id, label: c.name }))}
+                    />
+                </div>
+                <div className="flex gap-2">
+                    <Button onClick={() => openModal('create')}>
+                        <FaPlus /> Add Art Work
+                    </Button>
+                    <Button variant="secondary" onClick={() => setCategoryModalOpen(true)}>
+                        Manage Categories
                     </Button>
                 </div>
             </div>

@@ -17,6 +17,8 @@ const MaterialsPage = () => {
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(20);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('');
 
     // Material Modal State
     const [modalOpen, setModalOpen] = useState(false);
@@ -73,7 +75,11 @@ const MaterialsPage = () => {
     const loadItems = useCallback(async () => {
         setLoading(true);
         try {
-            const response = await getPaginated(API_ENDPOINTS.ART_MATERIALS.GET_ALL, { page, size: pageSize });
+            const params = { page, size: pageSize };
+            if (searchTerm) params.search = searchTerm;
+            if (selectedCategory) params.categoryId = selectedCategory;
+
+            const response = await getPaginated(API_ENDPOINTS.ART_MATERIALS.GET_ALL, params);
             setItems(response.content || []);
             setPagination({
                 number: response.number || 0,
@@ -86,7 +92,7 @@ const MaterialsPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, pageSize, toast]);
+    }, [page, pageSize, searchTerm, selectedCategory, toast]);
 
     useEffect(() => {
         loadCategories();
@@ -240,94 +246,115 @@ const MaterialsPage = () => {
                 </div>
             </div>
 
-            {loading ? (
-                <div className="flex justify-center py-20">
-                    <div className="spinner"></div>
+            <div className="flex flex-col md:flex-row gap-4 mb-6">
+                <div className="flex-1">
+                    <Input
+                        placeholder="Search materials..."
+                        value={searchTerm}
+                        onChange={(e) => { setSearchTerm(e.target.value); setPage(0); }}
+                        className="w-full"
+                    />
                 </div>
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {items.map((item) => (
-                        <div key={item.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
-                            {/* Image Header */}
-                            <div className="relative h-56 overflow-hidden bg-gray-100 dark:bg-gray-700">
-                                <img
-                                    src={item.imageUrl || 'https://via.placeholder.com/300?text=Material'}
-                                    alt={item.name}
-                                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300 cursor-pointer"
-                                    onClick={() => {
-                                        setPreviewImage(item.imageUrl || 'https://via.placeholder.com/300?text=Material');
-                                        setPreviewTitle(item.name);
-                                    }}
-                                />
-                                {item.discount > 0 && (
-                                    <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold shadow-sm">
-                                        -{item.discount}%
+                <div className="w-full md:w-64">
+                    <Select
+                        placeholder="Filter by Category"
+                        value={selectedCategory}
+                        onChange={(e) => { setSelectedCategory(e.target.value); setPage(0); }}
+                        options={categories.map(c => ({ value: c.id, label: c.name }))}
+                    />
+                </div>
+            </div>
+
+            {
+                loading ? (
+                    <div className="flex justify-center py-20">
+                        <div className="spinner"></div>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {items.map((item) => (
+                            <div key={item.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
+                                {/* Image Header */}
+                                <div className="relative h-56 overflow-hidden bg-gray-100 dark:bg-gray-700">
+                                    <img
+                                        src={item.imageUrl || 'https://via.placeholder.com/300?text=Material'}
+                                        alt={item.name}
+                                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                                        onClick={() => {
+                                            setPreviewImage(item.imageUrl || 'https://via.placeholder.com/300?text=Material');
+                                            setPreviewTitle(item.name);
+                                        }}
+                                    />
+                                    {item.discount > 0 && (
+                                        <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold shadow-sm">
+                                            -{item.discount}%
+                                        </div>
+                                    )}
+                                    <div className="absolute top-2 left-2 bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded text-xs font-semibold shadow-sm text-gray-800 dark:text-gray-200">
+                                        {item.categoryName || 'Uncategorized'}
                                     </div>
-                                )}
-                                <div className="absolute top-2 left-2 bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded text-xs font-semibold shadow-sm text-gray-800 dark:text-gray-200">
-                                    {item.categoryName || 'Uncategorized'}
-                                </div>
-                                <div className={`absolute bottom-2 right-2 px-2 py-1 rounded-full text-xs font-bold shadow-sm ${item.active ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                                    {item.active ? 'Active' : 'Inactive'}
-                                </div>
-                            </div>
-
-                            {/* Content Body */}
-                            <div className="p-4 space-y-3">
-                                <h3 className="text-lg font-bold text-gray-800 dark:text-white line-clamp-1" title={item.name}>
-                                    {item.name}
-                                </h3>
-
-                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 h-10">
-                                    {item.description}
-                                </p>
-
-                                <div className="grid grid-cols-2 gap-2 text-sm">
-                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
-                                        <div className="text-gray-500 text-xs">Price</div>
-                                        <div className="font-bold text-gray-800 dark:text-white">₹{item.basePrice}</div>
+                                    <div className={`absolute bottom-2 right-2 px-2 py-1 rounded-full text-xs font-bold shadow-sm ${item.active ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+                                        {item.active ? 'Active' : 'Inactive'}
                                     </div>
-                                    <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
-                                        <div className="text-gray-500 text-xs">Stock</div>
-                                        <div className={`font-bold ${item.stock < 10 ? 'text-red-500' : 'text-green-600'}`}>
-                                            {item.stock}
+                                </div>
+
+                                {/* Content Body */}
+                                <div className="p-4 space-y-3">
+                                    <h3 className="text-lg font-bold text-gray-800 dark:text-white line-clamp-1" title={item.name}>
+                                        {item.name}
+                                    </h3>
+
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 h-10">
+                                        {item.description}
+                                    </p>
+
+                                    <div className="grid grid-cols-2 gap-2 text-sm">
+                                        <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
+                                            <div className="text-gray-500 text-xs">Price</div>
+                                            <div className="font-bold text-gray-800 dark:text-white">₹{item.basePrice}</div>
+                                        </div>
+                                        <div className="bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg text-center">
+                                            <div className="text-gray-500 text-xs">Stock</div>
+                                            <div className={`font-bold ${item.stock < 10 ? 'text-red-500' : 'text-green-600'}`}>
+                                                {item.stock}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                                {item.variants?.length > 0 && (
-                                    <div className="flex justify-between items-center text-xs text-gray-500">
-                                        <div className="flex items-center gap-1">
-                                            <FaLayerGroup /> {item.variants.length} Variants
+                                    {item.variants?.length > 0 && (
+                                        <div className="flex justify-between items-center text-xs text-gray-500">
+                                            <div className="flex items-center gap-1">
+                                                <FaLayerGroup /> {item.variants.length} Variants
+                                            </div>
+                                            <button
+                                                onClick={() => openVariantsModal(item)}
+                                                className="text-purple-600 hover:text-purple-700 hover:underline font-medium flex items-center gap-1"
+                                            >
+                                                View All
+                                            </button>
                                         </div>
+                                    )}
+
+                                    <div className="flex justify-end pt-2 gap-2 border-t border-gray-100 dark:border-gray-700">
                                         <button
-                                            onClick={() => openVariantsModal(item)}
-                                            className="text-purple-600 hover:text-purple-700 hover:underline font-medium flex items-center gap-1"
+                                            onClick={() => openModal('edit', item)}
+                                            className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
                                         >
-                                            View All
+                                            <FaEdit />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(item.id)}
+                                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                        >
+                                            <FaTrash />
                                         </button>
                                     </div>
-                                )}
-
-                                <div className="flex justify-end pt-2 gap-2 border-t border-gray-100 dark:border-gray-700">
-                                    <button
-                                        onClick={() => openModal('edit', item)}
-                                        className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
-                                    >
-                                        <FaEdit />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(item.id)}
-                                        className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                                    >
-                                        <FaTrash />
-                                    </button>
                                 </div>
                             </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                        ))}
+                    </div>
+                )
+            }
 
             <Pagination
                 pagination={pagination}

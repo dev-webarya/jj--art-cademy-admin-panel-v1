@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  admin-panel:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: jj-art-admin-panel
+    ports:
+      - "${PORT:-8023}:80"
+    environment:
+      - VITE_CLOUDINARY_CLOUD_NAME=${VITE_CLOUDINARY_CLOUD_NAME}
+      - VITE_CLOUDINARY_UPLOAD_PRESET=${VITE_CLOUDINARY_UPLOAD_PRESET}
+    env_file:
+      - .env
+    restart: unless-stopped
+    networks:
+      - admin-network
+
+networks:
+  admin-network:
+    driver: bridge

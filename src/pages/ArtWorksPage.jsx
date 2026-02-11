@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaEye, FaPaintBrush, FaRulerCombined, FaUser } from 'react-icons/fa';
 import Modal from '../components/ui/Modal';
 import ImagePreviewModal from '../components/ui/ImagePreviewModal';
 import { Button, Input, Select, Textarea } from '../components/ui/FormComponents';
@@ -217,14 +217,6 @@ const ArtWorksPage = () => {
                         options={categories.map(c => ({ value: c.id, label: c.name }))}
                     />
                 </div>
-                <div className="flex gap-2">
-                    <Button onClick={() => openModal('create')}>
-                        <FaPlus /> Add Art Work
-                    </Button>
-                    <Button variant="secondary" onClick={() => setCategoryModalOpen(true)}>
-                        Manage Categories
-                    </Button>
-                </div>
             </div>
 
             {loading ? (
@@ -232,11 +224,11 @@ const ArtWorksPage = () => {
                     <div className="spinner"></div>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {items.map((item) => (
-                        <div key={item.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
-                            {/* Image Header with Price Tag */}
-                            <div className="relative h-64 overflow-hidden bg-gray-100 dark:bg-gray-700">
+                        <div key={item.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                            {/* Image Header */}
+                            <div className="relative h-52 overflow-hidden">
                                 <img
                                     src={item.imageUrl || 'https://via.placeholder.com/300?text=Art+Work'}
                                     alt={item.name}
@@ -246,56 +238,78 @@ const ArtWorksPage = () => {
                                         setPreviewTitle(item.name);
                                     }}
                                 />
-                                <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
-                                    <span className="bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded-md text-xs font-bold shadow-sm">
-                                        ₹{item.discountPrice || item.basePrice}
-                                    </span>
-                                    {item.discountPrice && item.discountPrice < item.basePrice && (
-                                        <span className="bg-red-500 text-white px-2 py-1 rounded-md text-xs font-bold line-through shadow-sm">
-                                            ₹{item.basePrice}
-                                        </span>
-                                    )}
+                                <div className="absolute top-2 right-2 bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded-full text-xs font-semibold shadow-sm text-gray-800 dark:text-gray-200">
+                                    {item.categoryName || 'Uncategorized'}
                                 </div>
-                                <div className="absolute top-2 left-2 bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded text-xs font-semibold shadow-sm text-gray-800 dark:text-gray-200">
-                                    {item.categoryName}
-                                </div>
-                                <div className={`absolute bottom-2 left-2 px-2 py-1 rounded-full text-xs font-bold shadow-sm ${item.active ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
-                                    {item.active ? 'Active' : 'Inactive'}
+                                {item.discountPrice && item.discountPrice < item.basePrice && (
+                                    <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-sm">
+                                        Save ₹{(item.basePrice - item.discountPrice).toFixed(0)}
+                                    </div>
+                                )}
+                                {/* Gradient overlay with artist name */}
+                                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                                    <div className="flex items-center text-white text-sm font-medium">
+                                        <FaUser className="mr-2 text-purple-300" />
+                                        {item.artistName || 'Unknown Artist'}
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Content Body */}
-                            <div className="p-4 space-y-2">
+                            <div className="p-5 space-y-3">
                                 <div className="flex justify-between items-start">
-                                    <h3 className="text-lg font-bold text-gray-800 dark:text-white line-clamp-1" title={item.name}>
+                                    <h3 className="text-xl font-bold text-gray-800 dark:text-white line-clamp-1" title={item.name}>
                                         {item.name}
                                     </h3>
+                                    <span className={`shrink-0 ml-2 px-2 py-0.5 text-xs rounded-full ${item.active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>
+                                        {item.active ? 'Active' : 'Inactive'}
+                                    </span>
                                 </div>
 
-                                <p className="text-sm text-purple-600 dark:text-purple-400 font-medium">
-                                    {item.artistName}
+                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 h-10">
+                                    {item.description || 'No description available.'}
                                 </p>
 
-                                <div className="text-xs text-gray-500 flex flex-wrap gap-2">
-                                    <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{item.artMedium}</span>
-                                    <span className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">{item.size}</span>
+                                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                    <span className="flex items-center gap-1">
+                                        <FaPaintBrush className="text-orange-500" /> {item.artMedium || '-'}
+                                    </span>
+                                    <span className="flex items-center gap-1">
+                                        <FaRulerCombined className="text-blue-500" /> {item.size || '-'}
+                                    </span>
                                 </div>
 
+                                <div className="flex items-end justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                                    <div>
+                                        <span className="text-xs text-gray-500 uppercase tracking-wider">Price</span>
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-lg font-bold text-gray-900 dark:text-white">
+                                                ₹{item.discountPrice || item.basePrice}
+                                            </span>
+                                            {item.discountPrice && item.discountPrice < item.basePrice && (
+                                                <span className="text-sm text-gray-400 line-through">
+                                                    ₹{item.basePrice}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </div>
 
-
-                                <div className="flex justify-end pt-2 gap-2">
-                                    <button
-                                        onClick={() => openModal('edit', item)}
-                                        className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
-                                    >
-                                        <FaEdit />
-                                    </button>
-                                    <button
-                                        onClick={() => handleDelete(item.id)}
-                                        className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
-                                    >
-                                        <FaTrash />
-                                    </button>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => openModal('edit', item)}
+                                            className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                                            title="Edit"
+                                        >
+                                            <FaEdit />
+                                        </button>
+                                        <button
+                                            onClick={() => handleDelete(item.id)}
+                                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                            title="Delete"
+                                        >
+                                            <FaTrash />
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>

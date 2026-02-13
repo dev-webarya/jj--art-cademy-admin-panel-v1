@@ -239,7 +239,7 @@ const GalleriesPage = () => {
         <div className="animate-fadeIn p-6">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Art Galleries</h1>
+                    <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Art Galleries</h1>
                     <p className="text-gray-600 dark:text-gray-400">Manage all gallery content including partner galleries and approved student submissions. Edit, organize, and moderate published galleries.</p>
                 </div>
                 <div className="flex gap-3">
@@ -263,12 +263,12 @@ const GalleriesPage = () => {
                                 tab.color === 'green' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                                     tab.color === 'red' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                                         'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                            : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            : 'bg-gray-100 text-gray-600 dark:bg-[#252525] dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                             }`}
                     >
                         <tab.icon className="text-sm" />
                         {tab.label}
-                        <span className={`px-2 py-0.5 rounded-full text-xs ${statusFilter === tab.value ? 'bg-white/50 dark:bg-black/20' : 'bg-gray-200 dark:bg-gray-700'
+                        <span className={`px-2 py-0.5 rounded-full text-xs ${statusFilter === tab.value ? 'bg-white/50 dark:bg-black/20' : 'bg-gray-200 dark:bg-[#2c2c2c]'
                             }`}>
                             {tab.count}
                         </span>
@@ -285,7 +285,7 @@ const GalleriesPage = () => {
                         placeholder="Search galleries..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full md:w-96 pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        className="w-full md:w-96 pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-[#2f2f2f] bg-white dark:bg-[#252525] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#2383e2] focus:border-transparent transition-all"
                     />
                 </div>
             </div>
@@ -297,7 +297,7 @@ const GalleriesPage = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {filteredItems.map((item) => (
-                        <div key={item.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                        <div key={item.id} className="bg-white dark:bg-[#252525] rounded-lg shadow-md hover:shadow-sm transition-all duration-300 overflow-hidden group">
                             {/* Image Header - Compact */}
                             <div className="relative h-40 overflow-hidden">
                                 <img
@@ -314,14 +314,14 @@ const GalleriesPage = () => {
                                     {getStatusBadge(item.status)}
                                 </div>
                                 {/* Category badge - compact */}
-                                <div className="absolute top-2 right-2 bg-white/95 dark:bg-gray-900/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm text-gray-800 dark:text-gray-200">
+                                <div className="absolute top-2 right-2 bg-white/95 dark:bg-[#1e1e1e]/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm text-gray-800 dark:text-gray-200">
                                     {item.categoryName || 'Uncategorized'}
                                 </div>
                             </div>
 
                             {/* Content Body - Compact */}
                             <div className="p-4">
-                                <h3 className="text-base font-bold text-gray-800 dark:text-white line-clamp-1 mb-2" title={item.name}>
+                                <h3 className="text-base font-bold text-gray-800 dark:text-gray-100 line-clamp-1 mb-2" title={item.name}>
                                     {item.name}
                                 </h3>
 
@@ -338,7 +338,7 @@ const GalleriesPage = () => {
                                 )}
 
                                 {/* Action Buttons - Compact */}
-                                <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                                <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#2f2f2f]">
                                     {/* Status Action Icons */}
                                     <div className="flex items-center gap-1">
                                         {item.status !== 'APPROVED' ? (
@@ -375,7 +375,7 @@ const GalleriesPage = () => {
                                     <div className="flex items-center gap-1">
                                         <button
                                             onClick={() => openModal('edit', item)}
-                                            className="p-1.5 text-purple-600 hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/30 rounded transition-colors"
+                                            className="p-1.5 text-[#2383e2] hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/30 rounded transition-colors"
                                             title="Edit"
                                         >
                                             <FaEdit className="text-sm" />
@@ -516,12 +516,12 @@ const GalleriesPage = () => {
                         </p>
                     </div>
                     {itemToReject && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#252525] rounded-lg">
                             {itemToReject.imageUrl && (
                                 <img src={itemToReject.imageUrl} alt="" className="w-12 h-12 object-cover rounded" />
                             )}
                             <div>
-                                <p className="font-medium text-gray-800 dark:text-white">{itemToReject.name}</p>
+                                <p className="font-medium text-gray-800 dark:text-gray-100">{itemToReject.name}</p>
                                 <p className="text-sm text-gray-500">{itemToReject.categoryName || 'No category'}</p>
                             </div>
                         </div>

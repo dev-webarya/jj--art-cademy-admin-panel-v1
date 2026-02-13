@@ -233,7 +233,7 @@ const MaterialsPage = () => {
         <div className="animate-fadeIn p-6">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Art Materials</h1>
+                    <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Art Materials</h1>
                     <p className="text-gray-600 dark:text-gray-400">Manage art supplies inventory</p>
                 </div>
                 <div className="flex gap-3">
@@ -271,11 +271,11 @@ const MaterialsPage = () => {
                         <div className="spinner"></div>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                         {items.map((item) => (
-                            <div key={item.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                            <div key={item.id} className="bg-white dark:bg-[#252525] rounded-lg shadow-md hover:shadow-sm transition-all duration-300 overflow-hidden group">
                                 {/* Image Header */}
-                                <div className="relative h-48 overflow-hidden">
+                                <div className="relative h-40 overflow-hidden">
                                     <img
                                         src={item.imageUrl || 'https://via.placeholder.com/300?text=Material'}
                                         alt={item.name}
@@ -285,86 +285,76 @@ const MaterialsPage = () => {
                                             setPreviewTitle(item.name);
                                         }}
                                     />
-                                    <div className="absolute top-2 right-2 bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded-full text-xs font-semibold shadow-sm text-gray-800 dark:text-gray-200">
+                                    <div className="absolute top-2 right-2 bg-white/95 dark:bg-[#1e1e1e]/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm text-gray-800 dark:text-gray-200">
                                         {item.categoryName || 'Uncategorized'}
                                     </div>
                                     {item.discount > 0 && (
-                                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-sm">
+                                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm">
                                             -{item.discount}% OFF
                                         </div>
                                     )}
-                                    {/* Gradient overlay with stock indicator */}
-                                    <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-4">
-                                        <div className="flex items-center justify-between text-white text-sm font-medium">
-                                            <span className="flex items-center gap-1">
-                                                <FaBoxes className="text-blue-300" /> Stock: {item.stock}
-                                            </span>
-                                            {item.variants?.length > 0 && (
-                                                <span className="flex items-center gap-1 text-xs bg-white/20 px-2 py-0.5 rounded-full">
-                                                    <FaLayerGroup /> {item.variants.length} Variants
-                                                </span>
-                                            )}
-                                        </div>
+                                    {/* Status badge with stock */}
+                                    <div className={`absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm backdrop-blur-sm ${item.stock > 0
+                                        ? 'bg-green-500/90 text-white'
+                                        : 'bg-red-500/90 text-white'
+                                        }`}>
+                                        {item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
                                     </div>
+                                    {item.variants?.length > 0 && (
+                                        <div className="absolute bottom-2 right-2 bg-white/95 dark:bg-[#1e1e1e]/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm text-gray-800 dark:text-gray-200">
+                                            {item.variants.length} Variants
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Content Body */}
-                                <div className="p-5 space-y-3">
-                                    <div className="flex justify-between items-start">
-                                        <h3 className="text-xl font-bold text-gray-800 dark:text-white line-clamp-1" title={item.name}>
-                                            {item.name}
-                                        </h3>
-                                        <span className={`shrink-0 ml-2 px-2 py-0.5 text-xs rounded-full ${item.active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>
-                                            {item.active ? 'Active' : 'Inactive'}
-                                        </span>
-                                    </div>
+                                <div className="p-4 space-y-2">
+                                    <h3 className="text-base font-bold text-gray-800 dark:text-gray-100 line-clamp-1" title={item.name}>
+                                        {item.name}
+                                    </h3>
 
-                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 h-10">
+                                    <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 h-8 leading-tight">
                                         {item.description || 'No description available.'}
                                     </p>
 
                                     {item.variants?.length > 0 && (
                                         <button
                                             onClick={() => openVariantsModal(item)}
-                                            className="w-full flex items-center justify-between text-sm bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 px-3 py-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900/30 transition-colors"
+                                            className="w-full flex items-center justify-between text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                                         >
-                                            <span className="flex items-center gap-2">
-                                                <FaLayerGroup /> {item.variants.length} Variant{item.variants.length > 1 ? 's' : ''} Available
+                                            <span className="flex items-center gap-1.5">
+                                                <FaLayerGroup className="text-[10px]" /> {item.variants.length} Variant{item.variants.length > 1 ? 's' : ''}
                                             </span>
-                                            <span className="text-xs font-medium">View →</span>
+                                            <span className="text-[10px] font-medium">View →</span>
                                         </button>
                                     )}
 
-                                    <div className="flex items-end justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#2f2f2f]">
                                         <div>
-                                            <span className="text-xs text-gray-500 uppercase tracking-wider">Price</span>
-                                            <div className="flex items-baseline gap-2">
-                                                <span className="text-lg font-bold text-gray-900 dark:text-white">
+                                            <div className="flex items-baseline gap-1.5">
+                                                <span className="text-base font-bold text-gray-900 dark:text-gray-100">
                                                     ₹{item.basePrice}
                                                 </span>
                                                 {item.stock < 10 && item.stock > 0 && (
-                                                    <span className="text-xs text-orange-500 font-semibold">Low Stock</span>
-                                                )}
-                                                {item.stock === 0 && (
-                                                    <span className="text-xs text-red-500 font-semibold">Out of Stock</span>
+                                                    <span className="text-[10px] text-orange-500 font-semibold">Low Stock</span>
                                                 )}
                                             </div>
                                         </div>
 
-                                        <div className="flex gap-2">
+                                        <div className="flex gap-1">
                                             <button
                                                 onClick={() => openModal('edit', item)}
-                                                className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                                                className="p-1.5 text-gray-600 hover:text-[#2383e2] hover:bg-blue-50 dark:text-gray-400 dark:hover:bg-blue-900/30 rounded transition-colors"
                                                 title="Edit"
                                             >
-                                                <FaEdit />
+                                                <FaEdit className="text-sm" />
                                             </button>
                                             <button
                                                 onClick={() => handleDelete(item.id)}
-                                                className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                                className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded transition-colors"
                                                 title="Delete"
                                             >
-                                                <FaTrash />
+                                                <FaTrash className="text-sm" />
                                             </button>
                                         </div>
                                     </div>
@@ -440,16 +430,16 @@ const MaterialsPage = () => {
                     />
 
                     {/* Variants Section */}
-                    <div className="border rounded-lg p-3 bg-gray-50 dark:bg-gray-800/50">
+                    <div className="border rounded-lg p-3 bg-gray-50 dark:bg-[#252525]/50">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Variants (Optional)</label>
 
                         {/* List Existing Variants */}
                         {formData.variants.length > 0 && (
                             <div className="space-y-2 mb-3">
                                 {formData.variants.map((variant, index) => (
-                                    <div key={index} className="flex justify-between items-center bg-white dark:bg-gray-700/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm text-sm">
+                                    <div key={index} className="flex justify-between items-center bg-white dark:bg-[#2c2c2c]/50 p-3 rounded-lg border border-gray-200 dark:border-gray-600 shadow-sm text-sm">
                                         <span className="text-gray-800 dark:text-gray-200">
-                                            <span className="font-bold text-gray-900 dark:text-white">{variant.id}</span>: {variant.size} - ₹{variant.price} ({variant.stock} in stock)
+                                            <span className="font-bold text-gray-900 dark:text-gray-100">{variant.id}</span>: {variant.size} - ₹{variant.price} ({variant.stock} in stock)
                                         </span>
                                         <button
                                             type="button"
@@ -518,7 +508,7 @@ const MaterialsPage = () => {
                             type="checkbox"
                             checked={formData.active}
                             onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                            className="rounded text-purple-600 focus:ring-purple-500"
+                            className="rounded text-[#2383e2] focus:ring-[#2383e2]"
                         />
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Active</span>
                     </label>
@@ -577,7 +567,7 @@ const MaterialsPage = () => {
                 {selectedVariants.length > 0 ? (
                     <div className="overflow-x-auto">
                         <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
-                            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+                            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-[#2c2c2c] dark:text-gray-400">
                                 <tr>
                                     <th className="px-4 py-3">ID</th>
                                     <th className="px-4 py-3">Size/Type</th>
@@ -588,8 +578,8 @@ const MaterialsPage = () => {
                             </thead>
                             <tbody>
                                 {selectedVariants.map((variant, index) => (
-                                    <tr key={index} className="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{variant.id}</td>
+                                    <tr key={index} className="bg-white border-b dark:bg-[#252525] dark:border-[#2f2f2f] hover:bg-gray-50 dark:hover:bg-gray-600">
+                                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-gray-100">{variant.id}</td>
                                         <td className="px-4 py-3">{variant.size}</td>
                                         <td className="px-4 py-3 text-right">₹{variant.price}</td>
                                         <td className="px-4 py-3 text-right">

@@ -211,7 +211,7 @@ const LmsGalleryPage = () => {
                     onClick={() => { setPreviewImage(val); setPreviewTitle(row.name); }}
                 />
             ) : (
-                <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                <div className="w-20 h-20 bg-gray-200 dark:bg-[#2c2c2c] rounded-lg flex items-center justify-center">
                     <FaEye className="text-gray-400" />
                 </div>
             )
@@ -286,7 +286,7 @@ const LmsGalleryPage = () => {
         <div className="animate-fadeIn">
             {/* Header */}
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Student Gallery</h1>
+                <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-1">Student Gallery</h1>
                 <p className="text-gray-600 dark:text-gray-400">
                     Review student photo submissions. Approve to publish in the public gallery, or reject with feedback. Focus on pending submissions that need your attention.
                 </p>
@@ -300,19 +300,19 @@ const LmsGalleryPage = () => {
                         onClick={() => { setStatusFilter(tab.value); setPage(0); }}
                         className={`p-4 rounded-xl border-2 transition-all ${statusFilter === tab.value
                             ? `border-${tab.color}-500 bg-${tab.color}-50 dark:bg-${tab.color}-900/20`
-                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300'
+                            : 'border-gray-200 dark:border-[#2f2f2f] hover:border-gray-300'
                             }`}
                     >
                         <div className="flex items-center gap-3">
                             <div className={`p-3 rounded-lg ${tab.color === 'yellow' ? 'bg-yellow-100 text-yellow-600 dark:bg-yellow-900/30 dark:text-yellow-400' :
                                 tab.color === 'green' ? 'bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400' :
                                     tab.color === 'red' ? 'bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-400' :
-                                        'bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400'
+                                        'bg-purple-100 text-[#2383e2] dark:bg-purple-900/30 dark:text-purple-400'
                                 }`}>
                                 <tab.icon className="text-xl" />
                             </div>
                             <div className="text-left">
-                                <p className="text-2xl font-bold text-gray-800 dark:text-white">{tab.count}</p>
+                                <p className="text-lg font-semibold text-gray-800 dark:text-gray-100">{tab.count}</p>
                                 <p className="text-sm text-gray-600 dark:text-gray-400">{tab.label}</p>
                             </div>
                         </div>
@@ -420,12 +420,12 @@ const LmsGalleryPage = () => {
                         </p>
                     </div>
                     {itemToReject && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#252525] rounded-lg">
                             {itemToReject.imageUrl && (
                                 <img src={itemToReject.imageUrl} alt="" className="w-12 h-12 object-cover rounded" />
                             )}
                             <div>
-                                <p className="font-medium text-gray-800 dark:text-white">{itemToReject.name}</p>
+                                <p className="font-medium text-gray-800 dark:text-gray-100">{itemToReject.name}</p>
                                 <p className="text-sm text-gray-500">{itemToReject.location || 'No location'}</p>
                             </div>
                         </div>

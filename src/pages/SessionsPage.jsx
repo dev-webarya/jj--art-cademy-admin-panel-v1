@@ -205,7 +205,7 @@ const SessionsPage = () => {
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Class Sessions</h1>
+                <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-1">Class Sessions</h1>
                 <p className="text-gray-600 dark:text-gray-400">Schedule and manage class sessions</p>
             </div>
 
@@ -250,55 +250,55 @@ const SessionsPage = () => {
             >
                 {modalMode === 'view' ? (
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Class</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{classes.find(c => c.id === selectedItem?.classId)?.title || selectedItem?.className || classes.find(c => c.id === selectedItem?.classId)?.name || '-'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{classes.find(c => c.id === selectedItem?.classId)?.title || selectedItem?.className || classes.find(c => c.id === selectedItem?.classId)?.name || '-'}</span>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Topic</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.topic}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.topic}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Date</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.sessionDate}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.sessionDate}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Status</span>
                             <StatusBadge status={selectedItem?.status} />
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Time</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.startTime} - {selectedItem?.endTime}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.startTime} - {selectedItem?.endTime}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Attendance</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.attendanceTaken ? 'Taken' : 'Not Taken'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.attendanceTaken ? 'Taken' : 'Not Taken'}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Total Students</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.totalStudents || 0}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.totalStudents || 0}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Present / Absent</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">
                                 <span className="text-green-600 dark:text-green-400">{selectedItem?.presentCount || 0}</span>
                                 <span className="mx-2 text-gray-400">/</span>
                                 <span className="text-red-600 dark:text-red-400">{selectedItem?.absentCount || 0}</span>
                             </span>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Meeting Link</span>
-                            <a href={selectedItem?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline break-all">
+                            <a href={selectedItem?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-[#2383e2] dark:text-purple-400 hover:underline break-all">
                                 {selectedItem?.meetingLink || '-'}
                             </a>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Meeting Password</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.meetingPassword || '-'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.meetingPassword || '-'}</span>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Description</span>
-                            <p className="font-medium text-gray-900 dark:text-white text-base whitespace-pre-wrap">
+                            <p className="font-medium text-gray-900 dark:text-gray-100 text-base whitespace-pre-wrap">
                                 {selectedItem?.description || '-'}
                             </p>
                         </div>

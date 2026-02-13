@@ -211,14 +211,14 @@ const AttendancePage = () => {
         <div className="animate-fadeIn">
             <div className="mb-6 flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Attendance Management</h1>
+                    <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-1">Attendance Management</h1>
                     <p className="text-gray-600 dark:text-gray-400">Manage class attendance and view student history</p>
                 </div>
-                <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                <div className="flex bg-gray-100 dark:bg-[#2c2c2c] p-1 rounded-lg">
                     <button
                         onClick={() => setViewMode('SESSIONS')}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${viewMode === 'SESSIONS'
-                            ? 'bg-white dark:bg-gray-600 shadow text-purple-600 dark:text-purple-300'
+                            ? 'bg-white dark:bg-gray-600 shadow text-[#2383e2] dark:text-purple-300'
                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                             }`}
                     >
@@ -227,7 +227,7 @@ const AttendancePage = () => {
                     <button
                         onClick={() => setViewMode('HISTORY')}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${viewMode === 'HISTORY'
-                            ? 'bg-white dark:bg-gray-600 shadow text-purple-600 dark:text-purple-300'
+                            ? 'bg-white dark:bg-gray-600 shadow text-[#2383e2] dark:text-purple-300'
                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                             }`}
                     >
@@ -239,18 +239,18 @@ const AttendancePage = () => {
             {viewMode === 'SESSIONS' ? (
                 <>
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <Card className="bg-gradient-to-br from-purple-500 to-pink-600 text-white">
-                            <h3 className="text-lg font-semibold mb-1">Total Sessions</h3>
-                            <p className="text-3xl font-bold">{pagination?.totalElements || 0}</p>
+                    <div className="grid grid-cols-3 gap-3 mb-5">
+                        <Card className="p-3">
+                            <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Total Sessions</h3>
+                            <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">{pagination?.totalElements || 0}</p>
                         </Card>
-                        <Card className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
-                            <h3 className="text-lg font-semibold mb-1">Eligible Students</h3>
-                            <p className="text-3xl font-bold">{eligibleStudents.length}</p>
+                        <Card className="p-3">
+                            <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Eligible Students</h3>
+                            <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">{eligibleStudents.length}</p>
                         </Card>
-                        <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white">
-                            <h3 className="text-lg font-semibold mb-1">Attendance Taken</h3>
-                            <p className="text-3xl font-bold">
+                        <Card className="p-3">
+                            <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Attendance Taken</h3>
+                            <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                                 {sessions.filter(s => s.attendanceTaken).length}/{sessions.length}
                             </p>
                         </Card>
@@ -294,15 +294,15 @@ const AttendancePage = () => {
             >
                 <div className="space-y-4">
                     {/* Session Info */}
-                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600">
+                    <div className="bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                             <div>
                                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Date</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.sessionDate}</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">{selectedSession?.sessionDate}</span>
                             </div>
                             <div>
                                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Time</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.startTime} - {selectedSession?.endTime}</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">{selectedSession?.startTime} - {selectedSession?.endTime}</span>
                             </div>
                             <div>
                                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Status</span>
@@ -310,7 +310,7 @@ const AttendancePage = () => {
                             </div>
                             <div>
                                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Meeting</span>
-                                <a href={selectedSession?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline font-medium">Join</a>
+                                <a href={selectedSession?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-[#2383e2] dark:text-purple-400 hover:underline font-medium">Join</a>
                             </div>
                         </div>
                     </div>
@@ -327,9 +327,9 @@ const AttendancePage = () => {
 
                     {/* Attendance Sheet */}
                     {eligibleStudents.length > 0 ? (
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                        <div className="border border-gray-200 dark:border-[#2f2f2f] rounded-xl overflow-hidden">
                             <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-gray-800">
+                                <thead className="bg-gray-50 dark:bg-[#252525]">
                                     <tr>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Roll No</th>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Student</th>
@@ -347,12 +347,12 @@ const AttendancePage = () => {
                                                 : 'bg-red-50 dark:bg-red-900/10'
                                                 }`}
                                         >
-                                            <td className="px-4 py-3 font-mono font-semibold text-gray-800 dark:text-white">
+                                            <td className="px-4 py-3 font-mono font-semibold text-gray-800 dark:text-gray-100">
                                                 {student.rollNo}
                                             </td>
                                             <td className="px-4 py-3">
                                                 <div>
-                                                    <p className="font-medium text-gray-800 dark:text-white">{student.studentName}</p>
+                                                    <p className="font-medium text-gray-800 dark:text-gray-100">{student.studentName}</p>
                                                     <p className="text-xs text-gray-500">{student.studentEmail}</p>
                                                 </div>
                                             </td>
@@ -415,15 +415,15 @@ const AttendancePage = () => {
             >
                 <div className="space-y-4">
                     {/* Session Info */}
-                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600">
+                    <div className="bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600">
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Date</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.sessionDate}</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">{selectedSession?.sessionDate}</span>
                             </div>
                             <div>
                                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Time</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.startTime} - {selectedSession?.endTime}</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">{selectedSession?.startTime} - {selectedSession?.endTime}</span>
                             </div>
                             <div>
                                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Present</span>
@@ -438,9 +438,9 @@ const AttendancePage = () => {
 
                     {/* Attendance Records */}
                     {selectedSession?.attendanceRecords?.length > 0 ? (
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                        <div className="border border-gray-200 dark:border-[#2f2f2f] rounded-xl overflow-hidden">
                             <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-gray-800">
+                                <thead className="bg-gray-50 dark:bg-[#252525]">
                                     <tr>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Student</th>
                                         <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
@@ -453,7 +453,7 @@ const AttendancePage = () => {
                                     {selectedSession.attendanceRecords.map((record, idx) => (
                                         <tr key={idx}>
                                             <td className="px-4 py-3">
-                                                <p className="font-medium text-gray-800 dark:text-white">{record.studentName}</p>
+                                                <p className="font-medium text-gray-800 dark:text-gray-100">{record.studentName}</p>
                                                 <p className="text-xs text-gray-500">{record.studentEmail}</p>
                                             </td>
                                             <td className="px-4 py-3 text-center">

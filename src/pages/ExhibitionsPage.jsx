@@ -184,7 +184,7 @@ const ExhibitionsPage = () => {
         <div className="animate-fadeIn p-6">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Exhibitions</h1>
+                    <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Exhibitions</h1>
                     <p className="text-gray-600 dark:text-gray-400">Manage art exhibitions and shows</p>
                 </div>
                 <div className="flex gap-3">
@@ -206,7 +206,7 @@ const ExhibitionsPage = () => {
                         placeholder="Search exhibitions..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full md:w-96 pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        className="w-full md:w-96 pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-[#2f2f2f] bg-white dark:bg-[#252525] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#2383e2] focus:border-transparent transition-all"
                     />
                 </div>
             </div>
@@ -218,7 +218,7 @@ const ExhibitionsPage = () => {
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     {filteredItems.map((item) => (
-                        <div key={item.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden group">
+                        <div key={item.id} className="bg-white dark:bg-[#252525] rounded-lg shadow-md hover:shadow-sm transition-all duration-300 overflow-hidden group">
                             {/* Image Header - Compact */}
                             <div className="relative h-40 overflow-hidden">
                                 <img
@@ -231,7 +231,7 @@ const ExhibitionsPage = () => {
                                     }}
                                 />
                                 {/* Compact badges */}
-                                <div className="absolute top-2 right-2 bg-white/95 dark:bg-gray-900/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm">
+                                <div className="absolute top-2 right-2 bg-white/95 dark:bg-[#1e1e1e]/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm">
                                     {item.categoryName}
                                 </div>
                                 {/* Gradient overlay with location */}
@@ -250,7 +250,7 @@ const ExhibitionsPage = () => {
 
                             {/* Content Body - Compact */}
                             <div className="p-4 space-y-2">
-                                <h3 className="text-base font-bold text-gray-800 dark:text-white line-clamp-1" title={item.name}>
+                                <h3 className="text-base font-bold text-gray-800 dark:text-gray-100 line-clamp-1" title={item.name}>
                                     {item.name}
                                 </h3>
 
@@ -271,7 +271,7 @@ const ExhibitionsPage = () => {
                                 {/* Compact stats */}
                                 <div className="flex gap-3 text-xs text-gray-500 pt-1">
                                     <div className="flex items-center gap-1">
-                                        <FaUser className="text-purple-500 text-[10px]" />
+                                        <FaUser className="text-[#2383e2] text-[10px]" />
                                         <span className="font-semibold">{item.artistCount}</span>
                                     </div>
                                     <div className="flex items-center gap-1">
@@ -281,10 +281,10 @@ const ExhibitionsPage = () => {
                                 </div>
 
                                 {/* Compact actions */}
-                                <div className="flex justify-end pt-2 gap-1 border-t border-gray-100 dark:border-gray-700">
+                                <div className="flex justify-end pt-2 gap-1 border-t border-gray-100 dark:border-[#2f2f2f]">
                                     <button
                                         onClick={() => openModal('edit', item)}
-                                        className="p-1.5 text-gray-600 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/30 rounded transition-colors"
+                                        className="p-1.5 text-gray-600 hover:text-[#2383e2] hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/30 rounded transition-colors"
                                     >
                                         <FaEdit className="text-sm" />
                                     </button>
@@ -396,7 +396,7 @@ const ExhibitionsPage = () => {
                             type="checkbox"
                             checked={formData.active}
                             onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                            className="rounded text-purple-600 focus:ring-purple-500"
+                            className="rounded text-[#2383e2] focus:ring-[#2383e2]"
                         />
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Active</span>
                     </label>

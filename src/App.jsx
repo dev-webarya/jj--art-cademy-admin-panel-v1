@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './components/ui/Toast';
 import AdminLayout from './components/layout/AdminLayout';
 import ProtectedRoute from './components/layout/ProtectedRoute';
@@ -23,51 +24,53 @@ import OrdersPage from './pages/OrdersPage';
 
 function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <ToastProvider>
-          <Routes>
-            {/* Public Routes */}
-            <Route path="/login" element={<LoginPage />} />
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <ToastProvider>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/login" element={<LoginPage />} />
 
-            {/* Protected Admin Routes */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <AdminLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<DashboardPage />} />
+              {/* Protected Admin Routes */}
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <AdminLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Navigate to="/dashboard" replace />} />
+                <Route path="dashboard" element={<DashboardPage />} />
 
-              {/* User Management */}
-              <Route path="users" element={<UsersPage />} />
+                {/* User Management */}
+                <Route path="users" element={<UsersPage />} />
 
-              {/* LMS Routes */}
-              <Route path="enrollments" element={<EnrollmentsPage />} />
-              <Route path="subscriptions" element={<SubscriptionsPage />} />
-              <Route path="sessions" element={<SessionsPage />} />
-              <Route path="attendance" element={<AttendancePage />} />
-              <Route path="events" element={<EventsPage />} />
-              <Route path="lms-gallery" element={<LmsGalleryPage />} />
+                {/* LMS Routes */}
+                <Route path="enrollments" element={<EnrollmentsPage />} />
+                <Route path="subscriptions" element={<SubscriptionsPage />} />
+                <Route path="sessions" element={<SessionsPage />} />
+                <Route path="attendance" element={<AttendancePage />} />
+                <Route path="events" element={<EventsPage />} />
+                <Route path="lms-gallery" element={<LmsGalleryPage />} />
 
-              {/* Shop & Content Routes */}
-              <Route path="art-works" element={<ArtWorksPage />} />
-              <Route path="materials" element={<MaterialsPage />} />
-              <Route path="galleries" element={<GalleriesPage />} />
-              <Route path="exhibitions" element={<ExhibitionsPage />} />
-              <Route path="classes" element={<ClassesPage />} />
-              <Route path="orders" element={<OrdersPage />} />
-            </Route>
+                {/* Shop & Content Routes */}
+                <Route path="art-works" element={<ArtWorksPage />} />
+                <Route path="materials" element={<MaterialsPage />} />
+                <Route path="galleries" element={<GalleriesPage />} />
+                <Route path="exhibitions" element={<ExhibitionsPage />} />
+                <Route path="classes" element={<ClassesPage />} />
+                <Route path="orders" element={<OrdersPage />} />
+              </Route>
 
-            {/* Catch all */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </ToastProvider>
-      </AuthProvider>
-    </BrowserRouter>
+              {/* Catch all */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </ToastProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   );
 }
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaPlay, FaStop, FaCheck } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
@@ -17,6 +17,7 @@ const SessionsPage = () => {
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
     const [selectedClassId, setSelectedClassId] = useState(location.state?.classId || ''); // Filter state
+    const [searchTerm, setSearchTerm] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('view');
     const [selectedItem, setSelectedItem] = useState(null);
@@ -190,6 +191,17 @@ const SessionsPage = () => {
 
     const classOptions = classes.map(c => ({ value: c.id, label: c.title || c.name }));
 
+    const filteredSessions = useMemo(() => {
+        if (!searchTerm) return sessions;
+        const term = searchTerm.toLowerCase();
+        return sessions.filter(s =>
+            (s.topic || '').toLowerCase().includes(term) ||
+            (s.sessionDate || '').toLowerCase().includes(term) ||
+            (s.status || '').toLowerCase().includes(term) ||
+            (s.startTime || '').toLowerCase().includes(term)
+        );
+    }, [sessions, searchTerm]);
+
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
@@ -209,10 +221,12 @@ const SessionsPage = () => {
 
             <DataTable
                 columns={columns}
-                data={sessions}
+                data={filteredSessions}
                 loading={loading}
                 pagination={pagination}
                 onPageChange={setPage}
+                onSearch={setSearchTerm}
+                searchPlaceholder="Search sessions..."
                 actions={
                     <Button onClick={() => openModal('create')}>
                         <FaPlus /> New Session

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FaClipboardCheck, FaEye, FaCheckCircle, FaTimes, FaSync, FaCheckDouble, FaTimesCircle } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -16,6 +16,7 @@ const AttendancePage = () => {
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Modal states
     const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
@@ -196,6 +197,16 @@ const AttendancePage = () => {
     const presentCount = attendanceList.filter(a => a.isPresent).length;
     const absentCount = attendanceList.filter(a => !a.isPresent).length;
 
+    const filteredSessions = useMemo(() => {
+        if (!searchTerm) return sessions;
+        const term = searchTerm.toLowerCase();
+        return sessions.filter(s =>
+            (s.topic || '').toLowerCase().includes(term) ||
+            (s.sessionDate || '').toLowerCase().includes(term) ||
+            (s.status || '').toLowerCase().includes(term)
+        );
+    }, [sessions, searchTerm]);
+
     return (
         <div className="animate-fadeIn">
             <div className="mb-6 flex justify-between items-center">
@@ -248,10 +259,12 @@ const AttendancePage = () => {
                     {/* Sessions Table */}
                     <DataTable
                         columns={columns}
-                        data={sessions}
+                        data={filteredSessions}
                         loading={loading}
                         pagination={pagination}
                         onPageChange={setPage}
+                        onSearch={setSearchTerm}
+                        searchPlaceholder="Search sessions..."
                         emptyMessage="No sessions found"
                         actions={
                             <Button variant="secondary" onClick={() => { loadSessions(); loadEligibleStudents(); }}>

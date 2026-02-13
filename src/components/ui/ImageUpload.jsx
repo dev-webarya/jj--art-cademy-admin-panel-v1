@@ -67,8 +67,8 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
                         type="button"
                         onClick={() => setMode('upload')}
                         className={`px-3 py-1 rounded-md transition-all ${mode === 'upload'
-                                ? 'bg-white dark:bg-gray-600 text-purple-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                            ? 'bg-white dark:bg-gray-600 text-purple-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
                             }`}
                     >
                         <span className="flex items-center gap-1"><FaCloudUploadAlt /> Upload</span>
@@ -77,8 +77,8 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
                         type="button"
                         onClick={() => setMode('url')}
                         className={`px-3 py-1 rounded-md transition-all ${mode === 'url'
-                                ? 'bg-white dark:bg-gray-600 text-purple-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                            ? 'bg-white dark:bg-gray-600 text-purple-600 shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
                             }`}
                     >
                         <span className="flex items-center gap-1"><FaLink /> URL</span>
@@ -138,10 +138,10 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
                                         : 'border-purple-300 hover:border-purple-500 bg-purple-50/50 hover:bg-purple-50 dark:border-gray-600 dark:hover:border-purple-500 dark:bg-gray-700/30'
                                     }`}
                             >
-                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500 dark:text-gray-400">
-                                    <FaCloudUploadAlt className="w-8 h-8 mb-2" />
-                                    <p className="mb-1 text-sm"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                    <p className="text-xs">SVG, PNG, JPG (MAX. 5MB)</p>
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-600 dark:text-gray-300">
+                                    <FaCloudUploadAlt className="w-8 h-8 mb-2 text-purple-500 dark:text-purple-400" />
+                                    <p className="mb-1 text-sm"><span className="font-bold text-purple-600 dark:text-purple-400">Click to upload</span> or drag and drop</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG (MAX. 5MB)</p>
                                 </div>
                             </label>
                         </div>

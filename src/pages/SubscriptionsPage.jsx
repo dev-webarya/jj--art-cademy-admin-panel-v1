@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FaPlus, FaEye, FaBan, FaSync } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -14,6 +14,7 @@ const SubscriptionsPage = () => {
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('view');
     const [selectedItem, setSelectedItem] = useState(null);
@@ -180,6 +181,16 @@ const SubscriptionsPage = () => {
         label: `${e.studentName || e.userName} - ${e.className}`
     }));
 
+    const filteredSubscriptions = useMemo(() => {
+        if (!searchTerm) return subscriptions;
+        const term = searchTerm.toLowerCase();
+        return subscriptions.filter(s =>
+            (s.studentName || '').toLowerCase().includes(term) ||
+            (s.rollNo || '').toString().toLowerCase().includes(term) ||
+            (s.status || '').toLowerCase().includes(term)
+        );
+    }, [subscriptions, searchTerm]);
+
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
@@ -189,10 +200,12 @@ const SubscriptionsPage = () => {
 
             <DataTable
                 columns={columns}
-                data={subscriptions}
+                data={filteredSubscriptions}
                 loading={loading}
                 pagination={pagination}
                 onPageChange={setPage}
+                onSearch={setSearchTerm}
+                searchPlaceholder="Search subscriptions..."
                 actions={
                     <Button onClick={() => openModal('create')}>
                         <FaPlus /> New Subscription

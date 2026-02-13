@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaCheck, FaTimes, FaClock, FaCheckCircle, FaFilter, FaEye, FaTimesCircle } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -18,6 +18,7 @@ const LmsGalleryPage = () => {
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
     const [statusFilter, setStatusFilter] = useState('PENDING'); // PENDING, APPROVED, REJECTED, ALL
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Modal states
     const [modalOpen, setModalOpen] = useState(false);
@@ -270,6 +271,17 @@ const LmsGalleryPage = () => {
         },
     ];
 
+    const filteredItems = useMemo(() => {
+        if (!searchTerm) return items;
+        const term = searchTerm.toLowerCase();
+        return items.filter(i =>
+            (i.name || '').toLowerCase().includes(term) ||
+            (i.userName || '').toLowerCase().includes(term) ||
+            (i.categoryName || '').toLowerCase().includes(term) ||
+            (i.status || '').toLowerCase().includes(term)
+        );
+    }, [items, searchTerm]);
+
     return (
         <div className="animate-fadeIn">
             {/* Header */}
@@ -311,10 +323,12 @@ const LmsGalleryPage = () => {
             {/* Data Table */}
             <DataTable
                 columns={columns}
-                data={items}
+                data={filteredItems}
                 loading={loading}
                 pagination={pagination}
                 onPageChange={setPage}
+                onSearch={setSearchTerm}
+                searchPlaceholder="Search gallery..."
                 actions={
                     <Button onClick={() => openModal('create')}>
                         <FaPlus /> Add Gallery Item

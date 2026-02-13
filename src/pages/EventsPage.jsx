@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaSearch } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -14,6 +14,7 @@ const EventsPage = () => {
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('create');
     const [selectedItem, setSelectedItem] = useState(null);
@@ -206,6 +207,18 @@ const EventsPage = () => {
 
     const eventTypeOptions = EVENT_TYPES.map(t => ({ value: t, label: t.replace(/_/g, ' ') }));
 
+    const filteredEvents = useMemo(() => {
+        if (!searchTerm) return events;
+        const term = searchTerm.toLowerCase();
+        return events.filter(e =>
+            (e.title || '').toLowerCase().includes(term) ||
+            (e.description || '').toLowerCase().includes(term) ||
+            (e.location || '').toLowerCase().includes(term) ||
+            (e.eventType || '').toLowerCase().includes(term) ||
+            (e.status || '').toLowerCase().includes(term)
+        );
+    }, [events, searchTerm]);
+
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
@@ -215,10 +228,12 @@ const EventsPage = () => {
 
             <DataTable
                 columns={columns}
-                data={events}
+                data={filteredEvents}
                 loading={loading}
                 pagination={pagination}
                 onPageChange={setPage}
+                onSearch={setSearchTerm}
+                searchPlaceholder="Search events..."
                 actions={
                     <Button onClick={() => openModal('create')}>
                         <FaPlus /> New Event

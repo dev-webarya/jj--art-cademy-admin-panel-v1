@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FaCheck, FaTimes, FaEye, FaPlus } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -15,6 +15,7 @@ const EnrollmentsPage = () => {
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Modal states
     const [modalOpen, setModalOpen] = useState(false);
@@ -208,6 +209,18 @@ const EnrollmentsPage = () => {
     const scheduleOptions = SCHEDULE_OPTIONS.map(s => ({ value: s, label: s.replace(/_/g, ' ') }));
     const classOptions = classes.map(c => ({ value: c.id, label: c.title || c.name }));
 
+    const filteredEnrollments = useMemo(() => {
+        if (!searchTerm) return enrollments;
+        const term = searchTerm.toLowerCase();
+        return enrollments.filter(e =>
+            (e.rollNo || '').toString().toLowerCase().includes(term) ||
+            (e.studentName || e.userName || '').toLowerCase().includes(term) ||
+            (e.className || '').toLowerCase().includes(term) ||
+            (e.schedule || '').toLowerCase().includes(term) ||
+            (e.status || '').toLowerCase().includes(term)
+        );
+    }, [enrollments, searchTerm]);
+
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
@@ -217,10 +230,12 @@ const EnrollmentsPage = () => {
 
             <DataTable
                 columns={columns}
-                data={enrollments}
+                data={filteredEnrollments}
                 loading={loading}
                 pagination={pagination}
                 onPageChange={setPage}
+                onSearch={setSearchTerm}
+                searchPlaceholder="Search enrollments..."
                 actions={
                     // <Button onClick={() => openModal('create')}>
                     //     <FaPlus /> New Enrollment

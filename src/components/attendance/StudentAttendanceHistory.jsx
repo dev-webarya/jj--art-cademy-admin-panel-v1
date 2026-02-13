@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FaSearch, FaCalendarAlt, FaCheckCircle, FaTimes, FaFilter } from 'react-icons/fa';
 import { Button, Input, Select, Card } from '../ui/FormComponents';
 import api from '../../api/apiService';
@@ -9,6 +9,7 @@ const StudentAttendanceHistory = () => {
     const toast = useToast();
     const [students, setStudents] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState('');
+    const [studentSearch, setStudentSearch] = useState('');
     const [year, setYear] = useState(new Date().getFullYear());
     const [month, setMonth] = useState(new Date().getMonth() + 1);
     const [logs, setLogs] = useState([]);
@@ -28,6 +29,17 @@ const StudentAttendanceHistory = () => {
         };
         loadStudents();
     }, [toast]);
+
+    // Filter students based on search
+    const filteredStudents = useMemo(() => {
+        if (!studentSearch) return students;
+        const term = studentSearch.toLowerCase();
+        return students.filter(s =>
+            (s.studentName || '').toLowerCase().includes(term) ||
+            (s.rollNo || '').toString().toLowerCase().includes(term) ||
+            (s.studentEmail || '').toLowerCase().includes(term)
+        );
+    }, [students, studentSearch]);
 
     // Fetch logs when student/month/year changes
     const fetchLogs = async () => {
@@ -60,18 +72,25 @@ const StudentAttendanceHistory = () => {
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Select Student
                         </label>
+                        <div className="relative mb-2">
+                            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                            <input
+                                type="text"
+                                placeholder="Search by name or roll no..."
+                                value={studentSearch}
+                                onChange={(e) => setStudentSearch(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                            />
+                        </div>
                         <Select
                             value={selectedStudent}
                             onChange={(e) => setSelectedStudent(e.target.value)}
                             placeholder="Choose a student..."
-                        >
-                            <option value="">-- Select Student --</option>
-                            {students.map(s => (
-                                <option key={s.studentId} value={s.studentId}>
-                                    {s.studentName} ({s.rollNo})
-                                </option>
-                            ))}
-                        </Select>
+                            options={filteredStudents.map(s => ({
+                                value: s.studentId,
+                                label: `${s.studentName} (${s.rollNo})`
+                            }))}
+                        />
                     </div>
 
                     <div>
@@ -92,13 +111,12 @@ const StudentAttendanceHistory = () => {
                         <Select
                             value={month}
                             onChange={(e) => setMonth(parseInt(e.target.value))}
-                        >
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                                <option key={m} value={m}>
-                                    {new Date(0, m - 1).toLocaleString('default', { month: 'long' })}
-                                </option>
-                            ))}
-                        </Select>
+                            placeholder="Select month..."
+                            options={Array.from({ length: 12 }, (_, i) => ({
+                                value: i + 1,
+                                label: new Date(0, i).toLocaleString('default', { month: 'long' })
+                            }))}
+                        />
                     </div>
                 </div>
 

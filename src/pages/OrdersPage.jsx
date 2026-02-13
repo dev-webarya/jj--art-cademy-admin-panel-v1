@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FaEye, FaTruck, FaCheckCircle } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -13,6 +13,7 @@ const OrdersPage = () => {
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -126,6 +127,16 @@ const OrdersPage = () => {
         },
     ];
 
+    const filteredOrders = useMemo(() => {
+        if (!searchTerm) return orders;
+        const term = searchTerm.toLowerCase();
+        return orders.filter(o =>
+            (o.orderNumber || '').toLowerCase().includes(term) ||
+            (o.userEmail || '').toLowerCase().includes(term) ||
+            (o.status || '').toLowerCase().includes(term)
+        );
+    }, [orders, searchTerm]);
+
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
@@ -135,10 +146,12 @@ const OrdersPage = () => {
 
             <DataTable
                 columns={columns}
-                data={orders}
+                data={filteredOrders}
                 loading={loading}
                 pagination={pagination}
                 onPageChange={setPage}
+                onSearch={setSearchTerm}
+                searchPlaceholder="Search orders..."
             />
 
             {/* Order Details Modal */}

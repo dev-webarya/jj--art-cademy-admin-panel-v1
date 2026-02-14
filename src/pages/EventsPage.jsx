@@ -349,8 +349,8 @@ const EventsPage = () => {
 
                         <ImageUpload
                             label="Event Image"
-                            currentImage={formData.imageUrl}
-                            onImageSelected={(url) => setFormData({ ...formData, imageUrl: url })}
+                            value={formData.imageUrl}
+                            onChange={(url) => setFormData({ ...formData, imageUrl: url })}
                         />
                         <Input label="Banner URL" value={formData.bannerUrl} onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })} placeholder="Optional banner image URL" />
 

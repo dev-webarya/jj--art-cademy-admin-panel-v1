@@ -75,17 +75,36 @@ const MaterialsPage = () => {
     const loadItems = useCallback(async () => {
         setLoading(true);
         try {
-            const params = { page, size: pageSize };
-            if (searchTerm) params.search = searchTerm;
+            const isSearching = !!searchTerm;
+            const params = {
+                page: isSearching ? 0 : page,
+                size: isSearching ? 1000 : pageSize
+            };
+
             if (selectedCategory) params.categoryId = selectedCategory;
 
             const response = await getPaginated(API_ENDPOINTS.ART_MATERIALS.GET_ALL, params);
-            setItems(response.content || []);
+            let content = response.content || [];
+
+            if (isSearching) {
+                const term = searchTerm.toLowerCase();
+                content = content.filter(item =>
+                    (item.name || '').toLowerCase().includes(term) ||
+                    (item.description || '').toLowerCase().includes(term) ||
+                    // Also search in variants
+                    (item.variants && item.variants.some(v =>
+                        (v.id || '').toLowerCase().includes(term) ||
+                        (v.size || '').toLowerCase().includes(term)
+                    ))
+                );
+            }
+
+            setItems(content);
             setPagination({
-                number: response.number || 0,
-                size: response.size || pageSize,
-                totalElements: response.totalElements || 0,
-                totalPages: response.totalPages || 1,
+                number: isSearching ? 0 : (response.number || 0),
+                size: isSearching ? content.length : (response.size || pageSize),
+                totalElements: isSearching ? content.length : (response.totalElements || 0),
+                totalPages: isSearching ? 1 : (response.totalPages || 1),
             });
         } catch (error) {
             toast.error('Failed to load materials');

@@ -12,17 +12,14 @@ const SessionsPage = () => {
     const toast = useToast();
     const location = useLocation();
     const [sessions, setSessions] = useState([]);
-    const [classes, setClasses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
-    const [selectedClassId, setSelectedClassId] = useState(location.state?.classId || ''); // Filter state
     const [searchTerm, setSearchTerm] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('view');
     const [selectedItem, setSelectedItem] = useState(null);
     const [formData, setFormData] = useState({
-        classId: '',
         sessionDate: '',
         startTime: '',
         endTime: '',
@@ -33,20 +30,13 @@ const SessionsPage = () => {
     });
     const [formLoading, setFormLoading] = useState(false);
 
-    const loadClasses = useCallback(async () => {
-        try {
-            const response = await getPaginated(API_ENDPOINTS.ART_CLASSES.GET_ALL, { size: 100 });
-            setClasses(response.content || []);
-        } catch (error) {
-            console.error('Failed to load classes:', error);
-        }
-    }, []);
+    // ... loadClasses removed (not needed) ...
 
     const loadSessions = useCallback(async () => {
         setLoading(true);
         try {
             const params = { page, size: 20 };
-            if (selectedClassId) params.classId = selectedClassId; // Add filter if API supports it
+            // Removed classId filter
             const response = await getPaginated(API_ENDPOINTS.SESSIONS.GET_ALL, params);
             setSessions(response.content || []);
             setPagination({
@@ -60,29 +50,19 @@ const SessionsPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, selectedClassId, toast]);
+    }, [page, toast]);
 
     useEffect(() => {
-        loadClasses();
         loadSessions();
-    }, [loadClasses, loadSessions]);
+    }, [loadSessions]);
 
-    const handleStatusUpdate = async (id, status, reason = '') => {
-        try {
-            await api.patch(`${API_ENDPOINTS.SESSIONS.UPDATE_STATUS(id)}?status=${status}${reason ? `&reason=${reason}` : ''}`);
-            toast.success(`Session ${status.toLowerCase().replace('_', ' ')}`);
-            loadSessions();
-        } catch (error) {
-            toast.error('Failed to update session status');
-        }
-    };
+    // ... handleStatusUpdate ...
 
     const openModal = (mode, item = null) => {
         setModalMode(mode);
         setSelectedItem(item);
         if (mode === 'edit' && item) {
             setFormData({
-                classId: item.classId || '',
                 sessionDate: item.sessionDate || '',
                 startTime: item.startTime || '',
                 endTime: item.endTime || '',
@@ -93,7 +73,6 @@ const SessionsPage = () => {
             });
         } else if (mode === 'create') {
             setFormData({
-                classId: '',
                 sessionDate: '',
                 startTime: '',
                 endTime: '',
@@ -111,7 +90,7 @@ const SessionsPage = () => {
         setFormLoading(true);
         try {
             const requestData = {
-                classId: formData.classId,
+                // classId removed
                 sessionDate: formData.sessionDate,
                 startTime: formData.startTime,
                 endTime: formData.endTime,
@@ -189,8 +168,6 @@ const SessionsPage = () => {
         },
     ];
 
-    const classOptions = classes.map(c => ({ value: c.id, label: c.title || c.name }));
-
     const filteredSessions = useMemo(() => {
         if (!searchTerm) return sessions;
         const term = searchTerm.toLowerCase();
@@ -209,15 +186,6 @@ const SessionsPage = () => {
                 <p className="text-gray-600 dark:text-gray-400">Schedule and manage class sessions</p>
             </div>
 
-            <div className="flex gap-4 mb-4">
-                <Select
-                    placeholder="Filter by Class"
-                    value={selectedClassId}
-                    onChange={(e) => setSelectedClassId(e.target.value)}
-                    options={classOptions}
-                    className="w-64"
-                />
-            </div>
 
             <DataTable
                 columns={columns}
@@ -250,10 +218,6 @@ const SessionsPage = () => {
             >
                 {modalMode === 'view' ? (
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
-                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Class</span>
-                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{classes.find(c => c.id === selectedItem?.classId)?.title || selectedItem?.className || classes.find(c => c.id === selectedItem?.classId)?.name || '-'}</span>
-                        </div>
                         <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Topic</span>
                             <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.topic}</span>
@@ -305,14 +269,7 @@ const SessionsPage = () => {
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <Select
-                            label="Class"
-                            value={formData.classId}
-                            onChange={(e) => setFormData({ ...formData, classId: e.target.value })}
-                            options={classOptions}
-                            required
-                            placeholder="Select Class"
-                        />
+                        {/* Class selection removed as sessions are global */}
                         <Input label="Topic" value={formData.topic} onChange={(e) => setFormData({ ...formData, topic: e.target.value })} required />
                         <div className="grid grid-cols-3 gap-4">
                             <Input label="Date" type="date" value={formData.sessionDate} onChange={(e) => setFormData({ ...formData, sessionDate: e.target.value })} required />

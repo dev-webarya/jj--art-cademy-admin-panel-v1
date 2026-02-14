@@ -13,6 +13,7 @@ import EnrollmentsPage from './pages/EnrollmentsPage';
 import SubscriptionsPage from './pages/SubscriptionsPage';
 import SessionsPage from './pages/SessionsPage';
 import AttendancePage from './pages/AttendancePage';
+import AttendanceTakingPage from './pages/AttendanceTakingPage';
 import EventsPage from './pages/EventsPage';
 import LmsGalleryPage from './pages/LmsGalleryPage';
 import ArtWorksPage from './pages/ArtWorksPage';
@@ -52,6 +53,7 @@ function App() {
                 <Route path="subscriptions" element={<SubscriptionsPage />} />
                 <Route path="sessions" element={<SessionsPage />} />
                 <Route path="attendance" element={<AttendancePage />} />
+                <Route path="attendance/take/:sessionId" element={<AttendanceTakingPage />} />
                 <Route path="events" element={<EventsPage />} />
                 <Route path="lms-gallery" element={<LmsGalleryPage />} />
 

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaClipboardCheck, FaEye, FaCheckCircle, FaTimes, FaSync, FaCheckDouble, FaTimesCircle } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -57,25 +58,17 @@ const AttendancePage = () => {
         loadEligibleStudents();
     }, [loadSessions, loadEligibleStudents]);
 
-    // Open Take Attendance modal for a session
+    const navigate = useNavigate();
+
+    // Open Take Attendance for a session
     const openAttendanceModal = (session) => {
-        setSelectedSession(session);
-        // Initialize attendance list with approved students
-        setAttendanceList(eligibleStudents.map(s => {
-            const isAtThreshold = s.isOverLimit || (s.attendedSessions >= s.allowedSessions);
-            return {
-                studentId: s.studentId,
-                studentName: s.studentName,
-                rollNo: s.rollNo,
-                studentEmail: s.studentEmail,
-                attendedSessions: s.attendedSessions,
-                allowedSessions: s.allowedSessions,
-                isOverLimit: isAtThreshold,
-                isPresent: !isAtThreshold, // Default to Absent if over limit
-                remarks: '',
-            };
-        }));
-        setAttendanceModalOpen(true);
+        if (session.attendanceTaken) {
+            if (window.confirm('Attendance already submitted for this session. Do you want to EDIT it?')) {
+                navigate(`/attendance/take/${session.id}`);
+            }
+        } else {
+            navigate(`/attendance/take/${session.id}`);
+        }
     };
 
     // Open View Attendance modal for a session
@@ -316,140 +309,7 @@ const AttendancePage = () => {
                 <StudentAttendanceHistory />
             )}
 
-            {/* Take Attendance Modal */}
-            <Modal
-                isOpen={attendanceModalOpen}
-                onClose={() => setAttendanceModalOpen(false)}
-                title={`Take Attendance - ${selectedSession?.topic || ''}`}
-                size="xl"
-                footer={
-                    <>
-                        <Button variant="secondary" onClick={() => setAttendanceModalOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSubmitAttendance} loading={formLoading}>
-                            <FaCheckDouble /> Submit Attendance ({presentCount} Present, {absentCount} Absent)
-                        </Button>
-                    </>
-                }
-            >
-                <div className="space-y-4">
-                    {/* Session Info */}
-                    <div className="bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Date</span>
-                                <span className="font-medium text-gray-900 dark:text-gray-100">{selectedSession?.sessionDate}</span>
-                            </div>
-                            <div>
-                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Time</span>
-                                <span className="font-medium text-gray-900 dark:text-gray-100">{selectedSession?.startTime} - {selectedSession?.endTime}</span>
-                            </div>
-                            <div>
-                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Status</span>
-                                <StatusBadge status={selectedSession?.status} />
-                            </div>
-                            <div>
-                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Meeting</span>
-                                <a href={selectedSession?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-[#2383e2] dark:text-purple-400 hover:underline font-medium">Join</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div className="flex gap-2 justify-end">
-                        <Button variant="secondary" size="sm" onClick={markAllPresent}>
-                            <FaCheckCircle /> Mark All Present
-                        </Button>
-                        <Button variant="secondary" size="sm" onClick={markAllAbsent}>
-                            <FaTimesCircle /> Mark All Absent
-                        </Button>
-                    </div>
-
-                    {/* Attendance Sheet */}
-                    {eligibleStudents.length > 0 ? (
-                        <div className="border border-gray-200 dark:border-[#2f2f2f] rounded-xl overflow-hidden">
-                            <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-[#252525]">
-                                    <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Roll No</th>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Student</th>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Sessions</th>
-                                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Remarks</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {attendanceList.map((student) => (
-                                        <tr
-                                            key={student.studentId}
-                                            className={`transition-colors ${student.isOverLimit
-                                                ? 'bg-orange-50 dark:bg-orange-900/10 border-l-4 border-orange-500' // Highlight overlimit
-                                                : student.isPresent
-                                                    ? 'bg-green-50 dark:bg-green-900/10'
-                                                    : 'bg-red-50 dark:bg-red-900/10'
-                                                }`}
-                                        >
-                                            <td className="px-4 py-3 font-mono font-semibold text-gray-800 dark:text-gray-100">
-                                                {student.rollNo}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div>
-                                                    <p className="font-medium text-gray-800 dark:text-gray-100">{student.studentName}</p>
-                                                    <p className="text-xs text-gray-500">{student.studentEmail}</p>
-                                                    {student.isOverLimit && (
-                                                        <span className="inline-block mt-1 text-[10px] font-bold text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-800">
-                                                            ⚠️ Threshold Reached
-                                                        </span>
-                                                    )}
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className={student.isOverLimit ? 'text-orange-600 font-bold' : ''}>
-                                                    {student.attendedSessions}/{student.allowedSessions}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-center">
-                                                <button
-                                                    onClick={() => toggleStudentAttendance(student.studentId)}
-                                                    className={`px-4 py-2 rounded-lg font-semibold transition-all ${student.isPresent
-                                                        ? 'bg-green-500 text-white hover:bg-green-600'
-                                                        : 'bg-red-500 text-white hover:bg-red-600'
-                                                        }`}
-                                                >
-                                                    {student.isPresent ? (
-                                                        <span className="flex items-center gap-1"><FaCheckCircle /> Present</span>
-                                                    ) : (
-                                                        <span className="flex items-center gap-1"><FaTimes /> Absent</span>
-                                                    )}
-                                                </button>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <Input
-                                                    placeholder="Optional remarks..."
-                                                    value={student.remarks}
-                                                    onChange={(e) => updateRemarks(student.studentId, e.target.value)}
-                                                    className="!py-1 !text-sm"
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                            <p className="text-lg font-semibold">No Eligible Students</p>
-                            <p className="text-sm">Students need approved enrollment and active subscription to appear here.</p>
-                        </div>
-                    )}
-
-                    {/* Summary */}
-                    <div className="flex justify-end gap-4 text-sm font-semibold">
-                        <span className="text-green-600">Present: {presentCount}</span>
-                        <span className="text-red-500">Absent: {absentCount}</span>
-                        <span className="text-gray-600 dark:text-gray-400">Total: {attendanceList.length}</span>
-                    </div>
-                </div>
-            </Modal>
+            {/* View Attendance Modal - Kept for "View" action */}
 
             {/* View Attendance Modal */}
             <Modal

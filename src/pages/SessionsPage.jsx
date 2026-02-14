@@ -56,7 +56,18 @@ const SessionsPage = () => {
         loadSessions();
     }, [loadSessions]);
 
-    // ... handleStatusUpdate ...
+    const handleStatusUpdate = async (id, status, reason = '') => {
+        if (!confirm(`Are you sure you want to mark this session as ${status}?`)) return;
+        try {
+            await api.patch(API_ENDPOINTS.SESSIONS.UPDATE_STATUS(id), null, {
+                params: { status, reason }
+            });
+            toast.success(`Session marked as ${status}`);
+            loadSessions();
+        } catch (error) {
+            toast.error(error.message || 'Failed to update status');
+        }
+    };
 
     const openModal = (mode, item = null) => {
         setModalMode(mode);

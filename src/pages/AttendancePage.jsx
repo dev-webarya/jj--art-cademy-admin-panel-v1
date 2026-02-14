@@ -60,18 +60,21 @@ const AttendancePage = () => {
     // Open Take Attendance modal for a session
     const openAttendanceModal = (session) => {
         setSelectedSession(session);
-        // Initialize attendance list with all eligible students as present
-        setAttendanceList(eligibleStudents.map(s => ({
-            studentId: s.studentId,
-            studentName: s.studentName,
-            rollNo: s.rollNo,
-            studentEmail: s.studentEmail,
-            attendedSessions: s.attendedSessions,
-            allowedSessions: s.allowedSessions,
-            isOverLimit: s.isOverLimit,
-            isPresent: true,
-            remarks: '',
-        })));
+        // Initialize attendance list with approved students
+        setAttendanceList(eligibleStudents.map(s => {
+            const isAtThreshold = s.isOverLimit || (s.attendedSessions >= s.allowedSessions);
+            return {
+                studentId: s.studentId,
+                studentName: s.studentName,
+                rollNo: s.rollNo,
+                studentEmail: s.studentEmail,
+                attendedSessions: s.attendedSessions,
+                allowedSessions: s.allowedSessions,
+                isOverLimit: isAtThreshold,
+                isPresent: !isAtThreshold, // Default to Absent if over limit
+                remarks: '',
+            };
+        }));
         setAttendanceModalOpen(true);
     };
 
@@ -107,9 +110,19 @@ const AttendancePage = () => {
 
     // Toggle single student attendance
     const toggleStudentAttendance = (studentId) => {
-        setAttendanceList(prev => prev.map(a =>
-            a.studentId === studentId ? { ...a, isPresent: !a.isPresent } : a
-        ));
+        setAttendanceList(prev => prev.map(a => {
+            if (a.studentId !== studentId) return a;
+
+            // If currently absent (trying to mark present) AND over limit
+            if (!a.isPresent && a.isOverLimit) {
+                const confirmed = window.confirm(
+                    `Student ${a.studentName} has exceeded their allowed sessions (${a.attendedSessions}/${a.allowedSessions}).\n\nAre you sure you want to mark them as PRESENT?`
+                );
+                if (!confirmed) return a; // Do nothing if cancelled
+            }
+
+            return { ...a, isPresent: !a.isPresent };
+        }));
     };
 
     // Mark all present
@@ -236,6 +249,32 @@ const AttendancePage = () => {
                 </div>
             </div>
 
+            {/* Over Limit Warning Alert */}
+            {eligibleStudents.filter(s => s.isOverLimit).length > 0 && (
+                <div className="mb-6 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-4 flex items-start gap-4">
+                    <div className="p-2 bg-orange-100 dark:bg-orange-800/30 rounded-lg text-orange-600 dark:text-orange-400">
+                        <FaTimesCircle className="text-xl" />
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1">
+                            Attention Needed: Students Over Limit
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            The following students have exceeded their allowed sessions for this month.
+                            Please review their status before taking attendance.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            {eligibleStudents.filter(s => s.isOverLimit).map(student => (
+                                <span key={student.studentId} className="inline-flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-800 border border-orange-200 dark:border-orange-800 rounded text-xs font-semibold text-orange-700 dark:text-orange-300">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                                    {student.studentName} ({student.attendedSessions}/{student.allowedSessions})
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {viewMode === 'SESSIONS' ? (
                 <>
                     {/* Stats Cards */}
@@ -342,9 +381,11 @@ const AttendancePage = () => {
                                     {attendanceList.map((student) => (
                                         <tr
                                             key={student.studentId}
-                                            className={`transition-colors ${student.isPresent
-                                                ? 'bg-green-50 dark:bg-green-900/10'
-                                                : 'bg-red-50 dark:bg-red-900/10'
+                                            className={`transition-colors ${student.isOverLimit
+                                                ? 'bg-orange-50 dark:bg-orange-900/10 border-l-4 border-orange-500' // Highlight overlimit
+                                                : student.isPresent
+                                                    ? 'bg-green-50 dark:bg-green-900/10'
+                                                    : 'bg-red-50 dark:bg-red-900/10'
                                                 }`}
                                         >
                                             <td className="px-4 py-3 font-mono font-semibold text-gray-800 dark:text-gray-100">
@@ -354,12 +395,16 @@ const AttendancePage = () => {
                                                 <div>
                                                     <p className="font-medium text-gray-800 dark:text-gray-100">{student.studentName}</p>
                                                     <p className="text-xs text-gray-500">{student.studentEmail}</p>
+                                                    {student.isOverLimit && (
+                                                        <span className="inline-block mt-1 text-[10px] font-bold text-orange-600 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/30 px-1.5 py-0.5 rounded border border-orange-200 dark:border-orange-800">
+                                                            ⚠️ Threshold Reached
+                                                        </span>
+                                                    )}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3">
-                                                <span className={student.isOverLimit ? 'text-red-500 font-semibold' : ''}>
+                                                <span className={student.isOverLimit ? 'text-orange-600 font-bold' : ''}>
                                                     {student.attendedSessions}/{student.allowedSessions}
-                                                    {student.isOverLimit && ' (Over!)'}
                                                 </span>
                                             </td>
                                             <td className="px-4 py-3 text-center">

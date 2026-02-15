@@ -9,7 +9,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://93.127.194.118:8095',
+        target: 'https://api.jjartacademy.com',
         changeOrigin: true,
         secure: false,
       },

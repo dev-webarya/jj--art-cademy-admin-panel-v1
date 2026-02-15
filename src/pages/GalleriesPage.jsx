@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { FaPlus, FaEdit, FaTrash, FaCheck, FaTimes, FaClock, FaCheckCircle, FaTimesCircle, FaFilter, FaUser } from 'react-icons/fa';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { FaPlus, FaEdit, FaTrash, FaCheck, FaTimes, FaClock, FaCheckCircle, FaTimesCircle, FaFilter, FaUser, FaSearch } from 'react-icons/fa';
 import Modal from '../components/ui/Modal';
 import ImagePreviewModal from '../components/ui/ImagePreviewModal';
 import { Button, Input, Select, Textarea } from '../components/ui/FormComponents';
@@ -19,6 +19,7 @@ const GalleriesPage = () => {
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(20);
     const [statusFilter, setStatusFilter] = useState('APPROVED'); // Default to APPROVED for management focus
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Gallery Modal State
     const [modalOpen, setModalOpen] = useState(false);
@@ -223,11 +224,22 @@ const GalleriesPage = () => {
         }
     };
 
+    const filteredItems = useMemo(() => {
+        if (!searchTerm) return items;
+        const term = searchTerm.toLowerCase();
+        return items.filter(i =>
+            (i.name || '').toLowerCase().includes(term) ||
+            (i.description || '').toLowerCase().includes(term) ||
+            (i.userName || '').toLowerCase().includes(term) ||
+            (i.categoryName || '').toLowerCase().includes(term)
+        );
+    }, [items, searchTerm]);
+
     return (
         <div className="animate-fadeIn p-6">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Art Galleries</h1>
+                    <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Art Galleries</h1>
                     <p className="text-gray-600 dark:text-gray-400">Manage all gallery content including partner galleries and approved student submissions. Edit, organize, and moderate published galleries.</p>
                 </div>
                 <div className="flex gap-3">
@@ -251,12 +263,12 @@ const GalleriesPage = () => {
                                 tab.color === 'green' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                                     tab.color === 'red' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
                                         'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
-                            : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                            : 'bg-gray-100 text-gray-600 dark:bg-[#252525] dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                             }`}
                     >
                         <tab.icon className="text-sm" />
                         {tab.label}
-                        <span className={`px-2 py-0.5 rounded-full text-xs ${statusFilter === tab.value ? 'bg-white/50 dark:bg-black/20' : 'bg-gray-200 dark:bg-gray-700'
+                        <span className={`px-2 py-0.5 rounded-full text-xs ${statusFilter === tab.value ? 'bg-white/50 dark:bg-black/20' : 'bg-gray-200 dark:bg-[#2c2c2c]'
                             }`}>
                             {tab.count}
                         </span>
@@ -264,97 +276,113 @@ const GalleriesPage = () => {
                 ))}
             </div>
 
+            {/* Search Bar */}
+            <div className="mb-6">
+                <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search galleries..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full md:w-96 pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-[#2f2f2f] bg-white dark:bg-[#252525] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#2383e2] focus:border-transparent transition-all"
+                    />
+                </div>
+            </div>
+
             {loading ? (
                 <div className="flex justify-center py-20">
                     <div className="spinner"></div>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {items.map((item) => (
-                        <div key={item.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
-                            {/* Image Header */}
-                            <div className="relative h-48 overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {filteredItems.map((item) => (
+                        <div key={item.id} className="bg-white dark:bg-[#252525] rounded-lg shadow-md hover:shadow-sm transition-all duration-300 overflow-hidden group">
+                            {/* Image Header - Compact */}
+                            <div className="relative h-40 overflow-hidden">
                                 <img
                                     src={item.imageUrl || 'https://via.placeholder.com/300?text=Gallery'}
                                     alt={item.name}
-                                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500 cursor-pointer"
                                     onClick={() => {
                                         setPreviewImage(item.imageUrl || 'https://via.placeholder.com/300?text=Gallery');
                                         setPreviewTitle(item.name);
                                     }}
                                 />
+                                {/* Status badge - compact */}
                                 <div className="absolute top-2 left-2">
                                     {getStatusBadge(item.status)}
                                 </div>
-                                <div className="absolute top-2 right-2 bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded-full text-xs font-semibold shadow-sm text-gray-800 dark:text-gray-200">
+                                {/* Category badge - compact */}
+                                <div className="absolute top-2 right-2 bg-white/95 dark:bg-[#1e1e1e]/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm text-gray-800 dark:text-gray-200">
                                     {item.categoryName || 'Uncategorized'}
                                 </div>
                             </div>
 
-                            {/* Content Body */}
-                            <div className="p-5">
-                                <h3 className="text-xl font-bold text-gray-800 dark:text-white line-clamp-1 mb-2" title={item.name}>
+                            {/* Content Body - Compact */}
+                            <div className="p-4">
+                                <h3 className="text-base font-bold text-gray-800 dark:text-gray-100 line-clamp-1 mb-2" title={item.name}>
                                     {item.name}
                                 </h3>
 
-                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 min-h-[2.5rem] mb-2">
+                                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 h-8 leading-tight mb-2">
                                     {item.description || 'No description provided.'}
                                 </p>
 
-                                {/* Uploaded By Info */}
+                                {/* Uploaded By Info - Compact */}
                                 {item.userName && (
-                                    <p className="text-xs text-gray-500 dark:text-gray-500 mb-3 flex items-center gap-1">
-                                        <FaUser className="text-xs" />
-                                        <span>Uploaded by: <span className="font-medium">{item.userName}</span></span>
+                                    <p className="text-[10px] text-gray-500 dark:text-gray-500 mb-2 flex items-center gap-1">
+                                        <FaUser className="text-[8px]" />
+                                        <span>By: <span className="font-medium">{item.userName}</span></span>
                                     </p>
                                 )}
 
-                                {/* Action Buttons - Compact Icons */}
-                                <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700">
+                                {/* Action Buttons - Compact */}
+                                <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#2f2f2f]">
                                     {/* Status Action Icons */}
                                     <div className="flex items-center gap-1">
                                         {item.status !== 'APPROVED' ? (
                                             <>
                                                 <button
                                                     onClick={() => handleApprove(item.id)}
-                                                    className="p-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors shadow-sm"
+                                                    className="p-1.5 bg-green-500 text-white rounded hover:bg-green-600 transition-colors shadow-sm"
                                                     title="Approve"
                                                 >
-                                                    <FaCheck className="text-sm" />
+                                                    <FaCheck className="text-xs" />
                                                 </button>
                                                 {item.status !== 'REJECTED' && (
                                                     <button
                                                         onClick={() => openRejectModal(item)}
-                                                        className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-sm"
+                                                        className="p-1.5 bg-red-500 text-white rounded hover:bg-red-600 transition-colors shadow-sm"
                                                         title="Reject"
                                                     >
-                                                        <FaTimes className="text-sm" />
+                                                        <FaTimes className="text-xs" />
                                                     </button>
                                                 )}
                                             </>
                                         ) : (
                                             <button
                                                 onClick={() => openRejectModal(item)}
-                                                className="p-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition-colors shadow-sm"
+                                                className="p-1.5 bg-orange-500 text-white rounded hover:bg-orange-600 transition-colors shadow-sm"
                                                 title="Revoke Approval"
                                             >
-                                                <FaTimes className="text-sm" />
+                                                <FaTimes className="text-xs" />
                                             </button>
                                         )}
                                     </div>
 
-                                    {/* Edit/Delete Icons */}
+                                    {/* Edit/Delete Icons - Compact */}
                                     <div className="flex items-center gap-1">
                                         <button
                                             onClick={() => openModal('edit', item)}
-                                            className="p-2 text-purple-600 hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                                            className="p-1.5 text-[#2383e2] hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/30 rounded transition-colors"
                                             title="Edit"
                                         >
                                             <FaEdit className="text-sm" />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(item.id)}
-                                            className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                            className="p-1.5 text-gray-500 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded transition-colors"
                                             title="Delete"
                                         >
                                             <FaTrash className="text-sm" />
@@ -488,12 +516,12 @@ const GalleriesPage = () => {
                         </p>
                     </div>
                     {itemToReject && (
-                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-[#252525] rounded-lg">
                             {itemToReject.imageUrl && (
                                 <img src={itemToReject.imageUrl} alt="" className="w-12 h-12 object-cover rounded" />
                             )}
                             <div>
-                                <p className="font-medium text-gray-800 dark:text-white">{itemToReject.name}</p>
+                                <p className="font-medium text-gray-800 dark:text-gray-100">{itemToReject.name}</p>
                                 <p className="text-sm text-gray-500">{itemToReject.categoryName || 'No category'}</p>
                             </div>
                         </div>

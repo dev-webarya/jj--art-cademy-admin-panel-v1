@@ -46,26 +46,26 @@ const DataTable = ({
     });
 
     const getSortIcon = (key) => {
-        if (sortConfig.key !== key) return <FaSort className="text-gray-400" />;
+        if (sortConfig.key !== key) return <FaSort className="text-gray-300 dark:text-gray-600" />;
         return sortConfig.direction === 'asc' ? (
-            <FaSortUp className="text-purple-500" />
+            <FaSortUp className="text-[#2383e2]" />
         ) : (
-            <FaSortDown className="text-purple-500" />
+            <FaSortDown className="text-[#2383e2]" />
         );
     };
 
     return (
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden">
+        <div className="bg-white dark:bg-[#252525] rounded-lg border border-gray-200 dark:border-[#2f2f2f] overflow-hidden">
             {/* Search & Actions Bar */}
-            <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 justify-between items-center">
-                <div className="relative w-full sm:w-64">
-                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <div className="px-4 py-3 border-b border-gray-100 dark:border-[#2f2f2f] flex flex-col sm:flex-row gap-3 justify-between items-center">
+                <div className="relative w-full sm:w-56">
+                    <FaSearch className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400 text-xs" />
                     <input
                         type="text"
                         placeholder={searchPlaceholder}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-700 rounded-xl border-none outline-none text-sm text-gray-700 dark:text-gray-200 focus:ring-2 focus:ring-purple-500"
+                        className="w-full pl-8 pr-3 py-1.5 bg-gray-50 dark:bg-[#2c2c2c] rounded-md border border-gray-200 dark:border-[#3d3d3d] outline-none text-sm text-gray-700 dark:text-gray-300 focus:border-[#2383e2] focus:ring-1 focus:ring-[#2383e2]/20 transition-colors"
                     />
                 </div>
                 {actions && <div className="flex gap-2">{actions}</div>}
@@ -74,16 +74,16 @@ const DataTable = ({
             {/* Table */}
             <div className="overflow-x-auto">
                 <table className="w-full">
-                    <thead className="bg-gray-50 dark:bg-gray-900">
-                        <tr>
+                    <thead>
+                        <tr className="border-b border-gray-100 dark:border-[#2f2f2f]">
                             {columns.map((col) => (
                                 <th
                                     key={col.key}
                                     onClick={() => col.sortable && handleSort(col.key)}
-                                    className={`px-6 py-4 text-left text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider ${col.sortable ? 'cursor-pointer hover:text-gray-700 dark:hover:text-gray-200' : ''
+                                    className={`px-4 py-2.5 text-left text-[11px] font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider ${col.sortable ? 'cursor-pointer hover:text-gray-700 dark:hover:text-gray-300' : ''
                                         }`}
                                 >
-                                    <div className="flex items-center gap-2">
+                                    <div className="flex items-center gap-1.5">
                                         {col.label}
                                         {col.sortable && getSortIcon(col.key)}
                                     </div>
@@ -91,10 +91,10 @@ const DataTable = ({
                             ))}
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody>
                         {loading ? (
                             <tr>
-                                <td colSpan={columns.length} className="px-6 py-12 text-center">
+                                <td colSpan={columns.length} className="px-4 py-10 text-center">
                                     <div className="flex justify-center">
                                         <div className="spinner"></div>
                                     </div>
@@ -102,15 +102,15 @@ const DataTable = ({
                             </tr>
                         ) : sortedData.length === 0 ? (
                             <tr>
-                                <td colSpan={columns.length} className="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+                                <td colSpan={columns.length} className="px-4 py-10 text-center text-sm text-gray-400 dark:text-gray-500">
                                     {emptyMessage}
                                 </td>
                             </tr>
                         ) : (
                             sortedData.map((row, idx) => (
-                                <tr key={row.id || idx} className="table-row-hover transition-colors">
+                                <tr key={row.id || idx} className="table-row-hover border-b border-gray-50 dark:border-[#2a2a2a] last:border-none transition-colors">
                                     {columns.map((col) => (
-                                        <td key={col.key} className="px-6 py-4 whitespace-nowrap text-sm text-gray-700 dark:text-gray-300">
+                                        <td key={col.key} className="px-4 py-2.5 whitespace-nowrap text-[13px] text-gray-700 dark:text-gray-300">
                                             {col.render ? col.render(row[col.key], row) : row[col.key] ?? '-'}
                                         </td>
                                     ))}
@@ -123,29 +123,28 @@ const DataTable = ({
 
             {/* Pagination */}
             {pagination && (
-                <div className="p-4 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Showing {pagination.number * pagination.size + 1} to{' '}
-                        {Math.min((pagination.number + 1) * pagination.size, pagination.totalElements)} of{' '}
-                        {pagination.totalElements} entries
+                <div className="px-4 py-2.5 border-t border-gray-100 dark:border-[#2f2f2f] flex items-center justify-between">
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                        {pagination.number * pagination.size + 1}–{Math.min((pagination.number + 1) * pagination.size, pagination.totalElements)} of{' '}
+                        {pagination.totalElements}
                     </p>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1">
                         <button
                             onClick={() => onPageChange?.(pagination.number - 1)}
                             disabled={pagination.number === 0}
-                            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600"
+                            className="p-1.5 rounded text-gray-500 dark:text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-[#2c2c2c] transition-colors"
                         >
-                            <FaChevronLeft />
+                            <FaChevronLeft className="text-xs" />
                         </button>
-                        <span className="px-4 py-2 text-sm text-gray-700 dark:text-gray-300">
-                            Page {pagination.number + 1} of {pagination.totalPages}
+                        <span className="px-2 py-1 text-xs text-gray-500 dark:text-gray-400">
+                            {pagination.number + 1} / {pagination.totalPages}
                         </span>
                         <button
                             onClick={() => onPageChange?.(pagination.number + 1)}
                             disabled={pagination.number >= pagination.totalPages - 1}
-                            className="p-2 rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-200 dark:hover:bg-gray-600"
+                            className="p-1.5 rounded text-gray-500 dark:text-gray-400 disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100 dark:hover:bg-[#2c2c2c] transition-colors"
                         >
-                            <FaChevronRight />
+                            <FaChevronRight className="text-xs" />
                         </button>
                     </div>
                 </div>

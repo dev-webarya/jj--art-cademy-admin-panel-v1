@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { FaSearch, FaCalendarAlt, FaCheckCircle, FaTimes, FaFilter } from 'react-icons/fa';
 import { Button, Input, Select, Card } from '../ui/FormComponents';
 import api from '../../api/apiService';
@@ -9,6 +9,7 @@ const StudentAttendanceHistory = () => {
     const toast = useToast();
     const [students, setStudents] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState('');
+    const [studentSearch, setStudentSearch] = useState('');
     const [year, setYear] = useState(new Date().getFullYear());
     const [month, setMonth] = useState(new Date().getMonth() + 1);
     const [logs, setLogs] = useState([]);
@@ -28,6 +29,17 @@ const StudentAttendanceHistory = () => {
         };
         loadStudents();
     }, [toast]);
+
+    // Filter students based on search
+    const filteredStudents = useMemo(() => {
+        if (!studentSearch) return students;
+        const term = studentSearch.toLowerCase();
+        return students.filter(s =>
+            (s.studentName || '').toLowerCase().includes(term) ||
+            (s.rollNo || '').toString().toLowerCase().includes(term) ||
+            (s.studentEmail || '').toLowerCase().includes(term)
+        );
+    }, [students, studentSearch]);
 
     // Fetch logs when student/month/year changes
     const fetchLogs = async () => {
@@ -54,24 +66,31 @@ const StudentAttendanceHistory = () => {
 
     return (
         <div className="space-y-6">
-            <Card className="bg-white dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700">
+            <Card className="bg-white dark:bg-[#252525] p-4 rounded-xl border border-gray-100 dark:border-[#2f2f2f]">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                     <div className="md:col-span-2">
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Select Student
                         </label>
+                        <div className="relative mb-2">
+                            <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm" />
+                            <input
+                                type="text"
+                                placeholder="Search by name or roll no..."
+                                value={studentSearch}
+                                onChange={(e) => setStudentSearch(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2 rounded-lg border border-gray-200 dark:border-[#3d3d3d] bg-white dark:bg-[#2c2c2c] text-gray-800 dark:text-gray-100 text-sm focus:ring-2 focus:ring-[#2383e2] focus:border-transparent transition-all"
+                            />
+                        </div>
                         <Select
                             value={selectedStudent}
                             onChange={(e) => setSelectedStudent(e.target.value)}
                             placeholder="Choose a student..."
-                        >
-                            <option value="">-- Select Student --</option>
-                            {students.map(s => (
-                                <option key={s.studentId} value={s.studentId}>
-                                    {s.studentName} ({s.rollNo})
-                                </option>
-                            ))}
-                        </Select>
+                            options={filteredStudents.map(s => ({
+                                value: s.studentId,
+                                label: `${s.studentName} (${s.rollNo})`
+                            }))}
+                        />
                     </div>
 
                     <div>
@@ -92,13 +111,12 @@ const StudentAttendanceHistory = () => {
                         <Select
                             value={month}
                             onChange={(e) => setMonth(parseInt(e.target.value))}
-                        >
-                            {Array.from({ length: 12 }, (_, i) => i + 1).map(m => (
-                                <option key={m} value={m}>
-                                    {new Date(0, m - 1).toLocaleString('default', { month: 'long' })}
-                                </option>
-                            ))}
-                        </Select>
+                            placeholder="Select month..."
+                            options={Array.from({ length: 12 }, (_, i) => ({
+                                value: i + 1,
+                                label: new Date(0, i).toLocaleString('default', { month: 'long' })
+                            }))}
+                        />
                     </div>
                 </div>
 
@@ -118,24 +136,24 @@ const StudentAttendanceHistory = () => {
                 <div className="grid grid-cols-3 gap-4">
                     <Card className="bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800 p-4 text-center">
                         <h4 className="text-sm font-semibold text-green-700 dark:text-green-400 uppercase">Present</h4>
-                        <p className="text-2xl font-bold text-green-800 dark:text-green-300">{stats.present}</p>
+                        <p className="text-lg font-semibold text-green-800 dark:text-green-300">{stats.present}</p>
                     </Card>
                     <Card className="bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 p-4 text-center">
                         <h4 className="text-sm font-semibold text-red-700 dark:text-red-400 uppercase">Absent</h4>
-                        <p className="text-2xl font-bold text-red-800 dark:text-red-300">{stats.absent}</p>
+                        <p className="text-lg font-semibold text-red-800 dark:text-red-300">{stats.absent}</p>
                     </Card>
                     <Card className="bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800 p-4 text-center">
                         <h4 className="text-sm font-semibold text-blue-700 dark:text-blue-400 uppercase">Total</h4>
-                        <p className="text-2xl font-bold text-blue-800 dark:text-blue-300">{stats.total}</p>
+                        <p className="text-lg font-semibold text-blue-800 dark:text-blue-300">{stats.total}</p>
                     </Card>
                 </div>
             )}
 
             {/* Logs Table */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="bg-white dark:bg-[#252525] rounded-xl shadow-sm border border-gray-200 dark:border-[#2f2f2f] overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-gray-50 dark:bg-gray-700/50">
+                        <thead className="bg-gray-50 dark:bg-[#2c2c2c]/50">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
@@ -159,7 +177,7 @@ const StudentAttendanceHistory = () => {
                             ) : (
                                 logs.map((log) => (
                                     <tr key={log.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-gray-100">
                                             {log.sessionDate}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">

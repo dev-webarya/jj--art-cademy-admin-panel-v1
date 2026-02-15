@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaPlus, FaEdit, FaTrash, FaClock, FaUserGraduate, FaCalendarAlt } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaClock, FaUserGraduate, FaCalendarAlt, FaSearch } from 'react-icons/fa';
 import Modal from '../components/ui/Modal';
 import ImagePreviewModal from '../components/ui/ImagePreviewModal';
 import { Button, Input, Select, Textarea } from '../components/ui/FormComponents';
@@ -19,6 +19,7 @@ const ClassesPage = () => {
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
     const [pageSize, setPageSize] = useState(20);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Class Modal State
     const [modalOpen, setModalOpen] = useState(false);
@@ -181,11 +182,22 @@ const ClassesPage = () => {
         { value: 'All Levels', label: 'All Levels' },
     ];
 
+    const filteredItems = useMemo(() => {
+        if (!searchTerm) return items;
+        const term = searchTerm.toLowerCase();
+        return items.filter(i =>
+            (i.name || '').toLowerCase().includes(term) ||
+            (i.description || '').toLowerCase().includes(term) ||
+            (i.categoryName || '').toLowerCase().includes(term) ||
+            (i.proficiency || '').toLowerCase().includes(term)
+        );
+    }, [items, searchTerm]);
+
     return (
         <div className="animate-fadeIn p-6">
             <div className="flex justify-between items-center mb-6">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white">Art Classes</h1>
+                    <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Art Classes</h1>
                     <p className="text-gray-600 dark:text-gray-400">Manage your art classes and workshops</p>
                 </div>
                 <div className="flex gap-3">
@@ -198,95 +210,114 @@ const ClassesPage = () => {
                 </div>
             </div>
 
+            {/* Search Bar */}
+            <div className="mb-6">
+                <div className="relative">
+                    <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search classes..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full md:w-96 pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 dark:border-[#2f2f2f] bg-white dark:bg-[#252525] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-[#2383e2] focus:border-transparent transition-all"
+                    />
+                </div>
+            </div>
+
             {loading ? (
                 <div className="flex justify-center py-20">
                     <div className="spinner"></div>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {items.map((item) => (
-                        <div key={item.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg hover:shadow-xl transition-shadow overflow-hidden group">
-                            {/* Image Header */}
-                            <div className="relative h-48 overflow-hidden">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    {filteredItems.map((item) => (
+                        <div key={item.id} className="bg-white dark:bg-[#252525] rounded-lg shadow-md hover:shadow-sm transition-all duration-300 overflow-hidden group">
+                            {/* Image Header - Compact */}
+                            <div className="relative h-40 overflow-hidden">
                                 <img
                                     src={item.imageUrl || 'https://via.placeholder.com/300?text=No+Image'}
                                     alt={item.name}
-                                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                                    className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500 cursor-pointer"
                                     onClick={() => {
                                         setPreviewImage(item.imageUrl || 'https://via.placeholder.com/300?text=No+Image');
                                         setPreviewTitle(item.name);
                                     }}
                                 />
-                                <div className="absolute top-2 right-2 bg-white/90 dark:bg-gray-900/90 px-2 py-1 rounded-full text-xs font-semibold shadow-sm text-gray-800 dark:text-gray-200">
+                                {/* Compact badges */}
+                                <div className="absolute top-2 right-2 bg-white/95 dark:bg-[#1e1e1e]/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm text-gray-800 dark:text-gray-200">
                                     {item.categoryName || 'Uncategorized'}
                                 </div>
                                 {item.discountPrice < item.basePrice && (
-                                    <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-1 rounded-full text-xs font-bold shadow-sm">
-                                        Save ₹{(item.basePrice - item.discountPrice).toFixed(0)}
+                                    <div className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-pink-500 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-md animate-pulse">
+                                        -{Math.round(((item.basePrice - item.discountPrice) / item.basePrice) * 100)}%
                                     </div>
                                 )}
+                                {/* Status badge on image */}
+                                <div className={`absolute bottom-2 right-2 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm backdrop-blur-sm ${item.active
+                                    ? 'bg-green-500/90 text-white'
+                                    : 'bg-gray-500/90 text-white'
+                                    }`}>
+                                    {item.active ? '●' : '○'}
+                                </div>
                             </div>
 
-                            {/* Content Body */}
-                            <div className="p-5 space-y-3">
-                                <div className="flex justify-between items-start">
-                                    <h3 className="text-xl font-bold text-gray-800 dark:text-white line-clamp-1" title={item.name}>
-                                        {item.name}
-                                    </h3>
-                                    <span className={`px-2 py-0.5 text-xs rounded-full ${item.active ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'}`}>
-                                        {item.active ? 'Active' : 'Inactive'}
-                                    </span>
-                                </div>
+                            {/* Content Body - Compact */}
+                            <div className="p-4 space-y-2">
+                                <h3 className="text-base font-bold text-gray-800 dark:text-gray-100 line-clamp-1" title={item.name}>
+                                    {item.name}
+                                </h3>
 
-                                <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 h-10">
+                                <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 h-8 leading-tight">
                                     {item.description}
                                 </p>
 
-                                <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                                {/* Compact metadata with smaller icons */}
+                                <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 pt-1">
                                     <span className="flex items-center gap-1">
-                                        <FaClock className="text-purple-500" /> {item.durationWeeks} Weeks
+                                        <FaClock className="text-[10px] text-[#2383e2]" /> {item.durationWeeks}w
                                     </span>
                                     <span className="flex items-center gap-1">
-                                        <FaUserGraduate className="text-blue-500" /> {item.proficiency}
+                                        <FaUserGraduate className="text-[10px] text-blue-500" /> {item.proficiency}
                                     </span>
                                 </div>
 
-                                <div className="flex items-end justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                                {/* Compact price and actions */}
+                                <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#2f2f2f]">
                                     <div>
-                                        <span className="text-xs text-gray-500 underline">Price</span>
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-lg font-bold text-gray-900 dark:text-white">
+                                        <div className="flex items-baseline gap-1.5">
+                                            <span className="text-base font-bold text-gray-900 dark:text-gray-100">
                                                 ₹{item.discountPrice || item.basePrice}
                                             </span>
                                             {item.discountPrice && (
-                                                <span className="text-sm text-gray-400 line-through">
+                                                <span className="text-xs text-gray-400 line-through">
                                                     ₹{item.basePrice}
                                                 </span>
                                             )}
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-2">
+                                    {/* Compact action buttons */}
+                                    <div className="flex gap-1">
                                         <button
                                             onClick={() => navigate('/sessions', { state: { classId: item.id } })}
-                                            className="p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                                            className="p-1.5 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded transition-colors"
                                             title="View Sessions"
                                         >
-                                            <FaCalendarAlt />
+                                            <FaCalendarAlt className="text-sm" />
                                         </button>
                                         <button
                                             onClick={() => openModal('edit', item)}
-                                            className="p-2 text-gray-600 hover:text-purple-600 hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                                            className="p-1.5 text-gray-600 hover:text-[#2383e2] hover:bg-purple-50 dark:text-gray-400 dark:hover:bg-purple-900/30 rounded transition-colors"
                                             title="Edit"
                                         >
-                                            <FaEdit />
+                                            <FaEdit className="text-sm" />
                                         </button>
                                         <button
                                             onClick={() => handleDelete(item.id)}
-                                            className="p-2 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                                            className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded transition-colors"
                                             title="Delete"
                                         >
-                                            <FaTrash />
+                                            <FaTrash className="text-sm" />
                                         </button>
                                     </div>
                                 </div>
@@ -388,7 +419,7 @@ const ClassesPage = () => {
                             type="checkbox"
                             checked={formData.active}
                             onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                            className="rounded text-purple-600 focus:ring-purple-500"
+                            className="rounded text-[#2383e2] focus:ring-[#2383e2]"
                         />
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Active</span>
                     </label>

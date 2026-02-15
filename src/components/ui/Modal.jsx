@@ -49,32 +49,32 @@ const Modal = ({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 animate-fadeIn"
             onClick={handleBackdropClick}
         >
             <div
                 ref={modalRef}
-                className={`w-full ${sizeClasses[size]} bg-white dark:bg-gray-800 rounded-2xl shadow-2xl animate-fadeInUp overflow-hidden`}
+                className={`w-full ${sizeClasses[size]} bg-white dark:bg-[#252525] rounded-lg shadow-xl animate-fadeInUp overflow-hidden border border-gray-200 dark:border-[#2f2f2f]`}
             >
                 {/* Header */}
-                <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-white">{title}</h2>
+                <div className="flex items-center justify-between px-5 py-3.5 border-b border-gray-100 dark:border-[#2f2f2f]">
+                    <h2 className="text-base font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
                     {showCloseButton && (
                         <button
                             onClick={onClose}
-                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                            className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1 rounded hover:bg-gray-100 dark:hover:bg-[#2c2c2c]"
                         >
-                            <FaTimes className="text-xl" />
+                            <FaTimes className="text-sm" />
                         </button>
                     )}
                 </div>
 
                 {/* Body */}
-                <div className="p-6 max-h-[70vh] overflow-y-auto">{children}</div>
+                <div className="px-5 py-4 max-h-[70vh] overflow-y-auto">{children}</div>
 
                 {/* Footer */}
                 {footer && (
-                    <div className="flex items-center justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                    <div className="flex items-center justify-end gap-2 px-5 py-3 border-t border-gray-100 dark:border-[#2f2f2f] bg-gray-50/50 dark:bg-[#1e1e1e]">
                         {footer}
                     </div>
                 )}

@@ -124,7 +124,7 @@ const UsersPage = () => {
             render: (val) => (
                 <span className={`px-2 py-1 rounded-full text-xs font-semibold ${val?.includes('ROLE_ADMIN')
                         ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400'
-                        : 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
+                        : 'bg-gray-100 text-gray-800 dark:bg-[#1e1e1e]/30 dark:text-gray-400'
                     }`}>
                     {val?.includes('ROLE_ADMIN') ? 'Admin' : 'User'}
                 </span>
@@ -161,7 +161,7 @@ const UsersPage = () => {
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">User Management</h1>
+                <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-1">User Management</h1>
                 <p className="text-gray-600 dark:text-gray-400">Manage all registered users</p>
             </div>
 
@@ -173,11 +173,11 @@ const UsersPage = () => {
                 onPageChange={setPage}
                 onSearch={handleSearch}
                 searchPlaceholder="Search users..."
-                actions={
-                    <Button onClick={() => openModal('create')}>
-                        <FaPlus /> Add User
-                    </Button>
-                }
+                // actions={
+                //     <Button onClick={() => openModal('create')}>
+                //         <FaPlus /> Add User
+                //     </Button>
+                // }
             />
 
             {/* User Modal */}

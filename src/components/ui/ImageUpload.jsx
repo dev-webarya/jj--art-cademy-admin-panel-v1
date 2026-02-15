@@ -62,13 +62,13 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                     {label}
                 </label>
-                <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1 text-xs font-medium">
+                <div className="flex bg-gray-100 dark:bg-[#2c2c2c] rounded-lg p-1 text-xs font-medium">
                     <button
                         type="button"
                         onClick={() => setMode('upload')}
                         className={`px-3 py-1 rounded-md transition-all ${mode === 'upload'
-                                ? 'bg-white dark:bg-gray-600 text-purple-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                            ? 'bg-white dark:bg-gray-600 text-[#2383e2] shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
                             }`}
                     >
                         <span className="flex items-center gap-1"><FaCloudUploadAlt /> Upload</span>
@@ -77,8 +77,8 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
                         type="button"
                         onClick={() => setMode('url')}
                         className={`px-3 py-1 rounded-md transition-all ${mode === 'url'
-                                ? 'bg-white dark:bg-gray-600 text-purple-600 shadow-sm'
-                                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
+                            ? 'bg-white dark:bg-gray-600 text-[#2383e2] shadow-sm'
+                            : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
                             }`}
                     >
                         <span className="flex items-center gap-1"><FaLink /> URL</span>
@@ -88,7 +88,7 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
 
             <div className="flex items-start gap-4">
                 {/* Preview Area */}
-                <div className="relative w-32 h-32 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600 flex items-center justify-center group">
+                <div className="relative w-32 h-32 flex-shrink-0 bg-gray-100 dark:bg-[#2c2c2c] rounded-lg overflow-hidden border border-gray-200 dark:border-[#3d3d3d] flex items-center justify-center group">
                     {value ? (
                         <>
                             <img
@@ -112,8 +112,8 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
                     )}
 
                     {uploading && (
-                        <div className="absolute inset-0 bg-white/80 dark:bg-gray-800/80 flex items-center justify-center z-10">
-                            <FaSpinner className="animate-spin text-purple-600 text-2xl" />
+                        <div className="absolute inset-0 bg-white/80 dark:bg-[#252525]/80 flex items-center justify-center z-10">
+                            <FaSpinner className="animate-spin text-[#2383e2] text-2xl" />
                         </div>
                     )}
                 </div>
@@ -135,13 +135,13 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
                                 className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors
                                     ${uploading
                                         ? 'border-gray-300 bg-gray-50'
-                                        : 'border-purple-300 hover:border-purple-500 bg-purple-50/50 hover:bg-purple-50 dark:border-gray-600 dark:hover:border-purple-500 dark:bg-gray-700/30'
+                                        : 'border-purple-300 hover:border-purple-500 bg-purple-50/50 hover:bg-purple-50 dark:border-[#3d3d3d] dark:hover:border-purple-500 dark:bg-[#2c2c2c]/30'
                                     }`}
                             >
-                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-500 dark:text-gray-400">
-                                    <FaCloudUploadAlt className="w-8 h-8 mb-2" />
-                                    <p className="mb-1 text-sm"><span className="font-semibold">Click to upload</span> or drag and drop</p>
-                                    <p className="text-xs">SVG, PNG, JPG (MAX. 5MB)</p>
+                                <div className="flex flex-col items-center justify-center pt-5 pb-6 text-gray-600 dark:text-gray-300">
+                                    <FaCloudUploadAlt className="w-8 h-8 mb-2 text-[#2383e2] dark:text-purple-400" />
+                                    <p className="mb-1 text-sm"><span className="font-bold text-[#2383e2] dark:text-purple-400">Click to upload</span> or drag and drop</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">SVG, PNG, JPG (MAX. 5MB)</p>
                                 </div>
                             </label>
                         </div>
@@ -155,7 +155,7 @@ const ImageUpload = ({ value, onChange, label = "Image", className = "" }) => {
                                     type="url"
                                     value={value}
                                     onChange={(e) => onChange(e.target.value)}
-                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white dark:bg-gray-800 text-gray-800 dark:text-white"
+                                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-[#3d3d3d] rounded-lg focus:ring-2 focus:ring-[#2383e2] focus:border-transparent bg-white dark:bg-[#252525] text-gray-800 dark:text-gray-100"
                                     placeholder="Enter image URL (https://...)"
                                 />
                                 <p className="mt-2 text-xs text-gray-500">

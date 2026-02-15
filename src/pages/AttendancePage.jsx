@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaClipboardCheck, FaEye, FaCheckCircle, FaTimes, FaSync, FaCheckDouble, FaTimesCircle } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -16,6 +17,7 @@ const AttendancePage = () => {
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Modal states
     const [attendanceModalOpen, setAttendanceModalOpen] = useState(false);
@@ -56,22 +58,17 @@ const AttendancePage = () => {
         loadEligibleStudents();
     }, [loadSessions, loadEligibleStudents]);
 
-    // Open Take Attendance modal for a session
+    const navigate = useNavigate();
+
+    // Open Take Attendance for a session
     const openAttendanceModal = (session) => {
-        setSelectedSession(session);
-        // Initialize attendance list with all eligible students as present
-        setAttendanceList(eligibleStudents.map(s => ({
-            studentId: s.studentId,
-            studentName: s.studentName,
-            rollNo: s.rollNo,
-            studentEmail: s.studentEmail,
-            attendedSessions: s.attendedSessions,
-            allowedSessions: s.allowedSessions,
-            isOverLimit: s.isOverLimit,
-            isPresent: true,
-            remarks: '',
-        })));
-        setAttendanceModalOpen(true);
+        if (session.attendanceTaken) {
+            if (window.confirm('Attendance already submitted for this session. Do you want to EDIT it?')) {
+                navigate(`/attendance/take/${session.id}`);
+            }
+        } else {
+            navigate(`/attendance/take/${session.id}`);
+        }
     };
 
     // Open View Attendance modal for a session
@@ -106,9 +103,19 @@ const AttendancePage = () => {
 
     // Toggle single student attendance
     const toggleStudentAttendance = (studentId) => {
-        setAttendanceList(prev => prev.map(a =>
-            a.studentId === studentId ? { ...a, isPresent: !a.isPresent } : a
-        ));
+        setAttendanceList(prev => prev.map(a => {
+            if (a.studentId !== studentId) return a;
+
+            // If currently absent (trying to mark present) AND over limit
+            if (!a.isPresent && a.isOverLimit) {
+                const confirmed = window.confirm(
+                    `Student ${a.studentName} has exceeded their allowed sessions (${a.attendedSessions}/${a.allowedSessions}).\n\nAre you sure you want to mark them as PRESENT?`
+                );
+                if (!confirmed) return a; // Do nothing if cancelled
+            }
+
+            return { ...a, isPresent: !a.isPresent };
+        }));
     };
 
     // Mark all present
@@ -196,18 +203,28 @@ const AttendancePage = () => {
     const presentCount = attendanceList.filter(a => a.isPresent).length;
     const absentCount = attendanceList.filter(a => !a.isPresent).length;
 
+    const filteredSessions = useMemo(() => {
+        if (!searchTerm) return sessions;
+        const term = searchTerm.toLowerCase();
+        return sessions.filter(s =>
+            (s.topic || '').toLowerCase().includes(term) ||
+            (s.sessionDate || '').toLowerCase().includes(term) ||
+            (s.status || '').toLowerCase().includes(term)
+        );
+    }, [sessions, searchTerm]);
+
     return (
         <div className="animate-fadeIn">
             <div className="mb-6 flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Attendance Management</h1>
+                    <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-1">Attendance Management</h1>
                     <p className="text-gray-600 dark:text-gray-400">Manage class attendance and view student history</p>
                 </div>
-                <div className="flex bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+                <div className="flex bg-gray-100 dark:bg-[#2c2c2c] p-1 rounded-lg">
                     <button
                         onClick={() => setViewMode('SESSIONS')}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${viewMode === 'SESSIONS'
-                            ? 'bg-white dark:bg-gray-600 shadow text-purple-600 dark:text-purple-300'
+                            ? 'bg-white dark:bg-gray-600 shadow text-[#2383e2] dark:text-purple-300'
                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                             }`}
                     >
@@ -216,7 +233,7 @@ const AttendancePage = () => {
                     <button
                         onClick={() => setViewMode('HISTORY')}
                         className={`px-4 py-2 rounded-md text-sm font-medium transition-all ${viewMode === 'HISTORY'
-                            ? 'bg-white dark:bg-gray-600 shadow text-purple-600 dark:text-purple-300'
+                            ? 'bg-white dark:bg-gray-600 shadow text-[#2383e2] dark:text-purple-300'
                             : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
                             }`}
                     >
@@ -225,21 +242,47 @@ const AttendancePage = () => {
                 </div>
             </div>
 
+            {/* Over Limit Warning Alert */}
+            {eligibleStudents.filter(s => s.isOverLimit).length > 0 && (
+                <div className="mb-6 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-4 flex items-start gap-4">
+                    <div className="p-2 bg-orange-100 dark:bg-orange-800/30 rounded-lg text-orange-600 dark:text-orange-400">
+                        <FaTimesCircle className="text-xl" />
+                    </div>
+                    <div className="flex-1">
+                        <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-1">
+                            Attention Needed: Students Over Limit
+                        </h3>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+                            The following students have exceeded their allowed sessions for this month.
+                            Please review their status before taking attendance.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                            {eligibleStudents.filter(s => s.isOverLimit).map(student => (
+                                <span key={student.studentId} className="inline-flex items-center gap-1 px-2 py-1 bg-white dark:bg-gray-800 border border-orange-200 dark:border-orange-800 rounded text-xs font-semibold text-orange-700 dark:text-orange-300">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                                    {student.studentName} ({student.attendedSessions}/{student.allowedSessions})
+                                </span>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {viewMode === 'SESSIONS' ? (
                 <>
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <Card className="bg-gradient-to-br from-purple-500 to-pink-600 text-white">
-                            <h3 className="text-lg font-semibold mb-1">Total Sessions</h3>
-                            <p className="text-3xl font-bold">{pagination?.totalElements || 0}</p>
+                    <div className="grid grid-cols-3 gap-3 mb-5">
+                        <Card className="p-3">
+                            <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Total Sessions</h3>
+                            <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">{pagination?.totalElements || 0}</p>
                         </Card>
-                        <Card className="bg-gradient-to-br from-blue-500 to-cyan-600 text-white">
-                            <h3 className="text-lg font-semibold mb-1">Eligible Students</h3>
-                            <p className="text-3xl font-bold">{eligibleStudents.length}</p>
+                        <Card className="p-3">
+                            <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Eligible Students</h3>
+                            <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">{eligibleStudents.length}</p>
                         </Card>
-                        <Card className="bg-gradient-to-br from-green-500 to-emerald-600 text-white">
-                            <h3 className="text-lg font-semibold mb-1">Attendance Taken</h3>
-                            <p className="text-3xl font-bold">
+                        <Card className="p-3">
+                            <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Attendance Taken</h3>
+                            <p className="text-xl font-semibold text-gray-800 dark:text-gray-100">
                                 {sessions.filter(s => s.attendanceTaken).length}/{sessions.length}
                             </p>
                         </Card>
@@ -248,10 +291,12 @@ const AttendancePage = () => {
                     {/* Sessions Table */}
                     <DataTable
                         columns={columns}
-                        data={sessions}
+                        data={filteredSessions}
                         loading={loading}
                         pagination={pagination}
                         onPageChange={setPage}
+                        onSearch={setSearchTerm}
+                        searchPlaceholder="Search sessions..."
                         emptyMessage="No sessions found"
                         actions={
                             <Button variant="secondary" onClick={() => { loadSessions(); loadEligibleStudents(); }}>
@@ -264,134 +309,7 @@ const AttendancePage = () => {
                 <StudentAttendanceHistory />
             )}
 
-            {/* Take Attendance Modal */}
-            <Modal
-                isOpen={attendanceModalOpen}
-                onClose={() => setAttendanceModalOpen(false)}
-                title={`Take Attendance - ${selectedSession?.topic || ''}`}
-                size="xl"
-                footer={
-                    <>
-                        <Button variant="secondary" onClick={() => setAttendanceModalOpen(false)}>Cancel</Button>
-                        <Button onClick={handleSubmitAttendance} loading={formLoading}>
-                            <FaCheckDouble /> Submit Attendance ({presentCount} Present, {absentCount} Absent)
-                        </Button>
-                    </>
-                }
-            >
-                <div className="space-y-4">
-                    {/* Session Info */}
-                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Date</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.sessionDate}</span>
-                            </div>
-                            <div>
-                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Time</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.startTime} - {selectedSession?.endTime}</span>
-                            </div>
-                            <div>
-                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Status</span>
-                                <StatusBadge status={selectedSession?.status} />
-                            </div>
-                            <div>
-                                <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Meeting</span>
-                                <a href={selectedSession?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline font-medium">Join</a>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div className="flex gap-2 justify-end">
-                        <Button variant="secondary" size="sm" onClick={markAllPresent}>
-                            <FaCheckCircle /> Mark All Present
-                        </Button>
-                        <Button variant="secondary" size="sm" onClick={markAllAbsent}>
-                            <FaTimesCircle /> Mark All Absent
-                        </Button>
-                    </div>
-
-                    {/* Attendance Sheet */}
-                    {eligibleStudents.length > 0 ? (
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
-                            <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-gray-800">
-                                    <tr>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Roll No</th>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Student</th>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Sessions</th>
-                                        <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
-                                        <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Remarks</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                                    {attendanceList.map((student) => (
-                                        <tr
-                                            key={student.studentId}
-                                            className={`transition-colors ${student.isPresent
-                                                ? 'bg-green-50 dark:bg-green-900/10'
-                                                : 'bg-red-50 dark:bg-red-900/10'
-                                                }`}
-                                        >
-                                            <td className="px-4 py-3 font-mono font-semibold text-gray-800 dark:text-white">
-                                                {student.rollNo}
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <div>
-                                                    <p className="font-medium text-gray-800 dark:text-white">{student.studentName}</p>
-                                                    <p className="text-xs text-gray-500">{student.studentEmail}</p>
-                                                </div>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <span className={student.isOverLimit ? 'text-red-500 font-semibold' : ''}>
-                                                    {student.attendedSessions}/{student.allowedSessions}
-                                                    {student.isOverLimit && ' (Over!)'}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3 text-center">
-                                                <button
-                                                    onClick={() => toggleStudentAttendance(student.studentId)}
-                                                    className={`px-4 py-2 rounded-lg font-semibold transition-all ${student.isPresent
-                                                        ? 'bg-green-500 text-white hover:bg-green-600'
-                                                        : 'bg-red-500 text-white hover:bg-red-600'
-                                                        }`}
-                                                >
-                                                    {student.isPresent ? (
-                                                        <span className="flex items-center gap-1"><FaCheckCircle /> Present</span>
-                                                    ) : (
-                                                        <span className="flex items-center gap-1"><FaTimes /> Absent</span>
-                                                    )}
-                                                </button>
-                                            </td>
-                                            <td className="px-4 py-3">
-                                                <Input
-                                                    placeholder="Optional remarks..."
-                                                    value={student.remarks}
-                                                    onChange={(e) => updateRemarks(student.studentId, e.target.value)}
-                                                    className="!py-1 !text-sm"
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    ) : (
-                        <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                            <p className="text-lg font-semibold">No Eligible Students</p>
-                            <p className="text-sm">Students need approved enrollment and active subscription to appear here.</p>
-                        </div>
-                    )}
-
-                    {/* Summary */}
-                    <div className="flex justify-end gap-4 text-sm font-semibold">
-                        <span className="text-green-600">Present: {presentCount}</span>
-                        <span className="text-red-500">Absent: {absentCount}</span>
-                        <span className="text-gray-600 dark:text-gray-400">Total: {attendanceList.length}</span>
-                    </div>
-                </div>
-            </Modal>
+            {/* View Attendance Modal - Kept for "View" action */}
 
             {/* View Attendance Modal */}
             <Modal
@@ -402,15 +320,15 @@ const AttendancePage = () => {
             >
                 <div className="space-y-4">
                     {/* Session Info */}
-                    <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600">
+                    <div className="bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-xl p-4 border border-gray-100 dark:border-gray-600">
                         <div className="grid grid-cols-2 gap-4 text-sm">
                             <div>
                                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Date</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.sessionDate}</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">{selectedSession?.sessionDate}</span>
                             </div>
                             <div>
                                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Time</span>
-                                <span className="font-medium text-gray-900 dark:text-white">{selectedSession?.startTime} - {selectedSession?.endTime}</span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">{selectedSession?.startTime} - {selectedSession?.endTime}</span>
                             </div>
                             <div>
                                 <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Present</span>
@@ -425,9 +343,9 @@ const AttendancePage = () => {
 
                     {/* Attendance Records */}
                     {selectedSession?.attendanceRecords?.length > 0 ? (
-                        <div className="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+                        <div className="border border-gray-200 dark:border-[#2f2f2f] rounded-xl overflow-hidden">
                             <table className="w-full">
-                                <thead className="bg-gray-50 dark:bg-gray-800">
+                                <thead className="bg-gray-50 dark:bg-[#252525]">
                                     <tr>
                                         <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Student</th>
                                         <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Status</th>
@@ -440,7 +358,7 @@ const AttendancePage = () => {
                                     {selectedSession.attendanceRecords.map((record, idx) => (
                                         <tr key={idx}>
                                             <td className="px-4 py-3">
-                                                <p className="font-medium text-gray-800 dark:text-white">{record.studentName}</p>
+                                                <p className="font-medium text-gray-800 dark:text-gray-100">{record.studentName}</p>
                                                 <p className="text-xs text-gray-500">{record.studentEmail}</p>
                                             </td>
                                             <td className="px-4 py-3 text-center">

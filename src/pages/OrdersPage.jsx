@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FaEye, FaTruck, FaCheckCircle } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -13,6 +13,7 @@ const OrdersPage = () => {
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState(null);
 
@@ -112,7 +113,7 @@ const OrdersPage = () => {
                         <FaEye />
                     </button>
                     {row.status === 'PROCESSING' && (
-                        <button onClick={() => handleShipClick(row)} className="p-2 text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg" title="Mark as Shipped">
+                        <button onClick={() => handleShipClick(row)} className="p-2 text-[#2383e2] hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg" title="Mark as Shipped">
                             <FaTruck />
                         </button>
                     )}
@@ -126,19 +127,31 @@ const OrdersPage = () => {
         },
     ];
 
+    const filteredOrders = useMemo(() => {
+        if (!searchTerm) return orders;
+        const term = searchTerm.toLowerCase();
+        return orders.filter(o =>
+            (o.orderNumber || '').toLowerCase().includes(term) ||
+            (o.userEmail || '').toLowerCase().includes(term) ||
+            (o.status || '').toLowerCase().includes(term)
+        );
+    }, [orders, searchTerm]);
+
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Orders</h1>
+                <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-1">Orders</h1>
                 <p className="text-gray-600 dark:text-gray-400">Manage customer orders and shipping</p>
             </div>
 
             <DataTable
                 columns={columns}
-                data={orders}
+                data={filteredOrders}
                 loading={loading}
                 pagination={pagination}
                 onPageChange={setPage}
+                onSearch={setSearchTerm}
+                searchPlaceholder="Search orders..."
             />
 
             {/* Order Details Modal */}
@@ -151,29 +164,29 @@ const OrdersPage = () => {
                 {selectedOrder && (
                     <div className="space-y-6">
                         {/* Header Info */}
-                        <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                            <div><strong className="text-gray-500">Order #:</strong> <span className="text-gray-900 dark:text-white font-medium">{selectedOrder.orderNumber}</span></div>
+                        <div className="grid grid-cols-2 gap-4 text-sm bg-gray-50 dark:bg-[#252525] p-4 rounded-lg">
+                            <div><strong className="text-gray-500">Order #:</strong> <span className="text-gray-900 dark:text-gray-100 font-medium">{selectedOrder.orderNumber}</span></div>
                             <div><strong className="text-gray-500">Status:</strong> <StatusBadge status={selectedOrder.status} /></div>
-                            <div><strong className="text-gray-500">Email:</strong> <span className="text-gray-900 dark:text-white">{selectedOrder.userEmail}</span></div>
-                            <div><strong className="text-gray-500">Date:</strong> <span className="text-gray-900 dark:text-white">{selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleString() : '-'}</span></div>
+                            <div><strong className="text-gray-500">Email:</strong> <span className="text-gray-900 dark:text-gray-100">{selectedOrder.userEmail}</span></div>
+                            <div><strong className="text-gray-500">Date:</strong> <span className="text-gray-900 dark:text-gray-100">{selectedOrder.createdAt ? new Date(selectedOrder.createdAt).toLocaleString() : '-'}</span></div>
                             {selectedOrder.trackingNumber && (
-                                <div className="col-span-2 mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
-                                    <strong className="text-gray-500">Tracking:</strong> <span className="text-purple-600 font-medium">{selectedOrder.carrier} - {selectedOrder.trackingNumber}</span>
+                                <div className="col-span-2 mt-2 pt-2 border-t border-gray-200 dark:border-[#2f2f2f]">
+                                    <strong className="text-gray-500">Tracking:</strong> <span className="text-[#2383e2] font-medium">{selectedOrder.carrier} - {selectedOrder.trackingNumber}</span>
                                 </div>
                             )}
                         </div>
 
                         {/* Addresses */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Shipping Address</h3>
-                                <p className="text-gray-700 dark:text-gray-300 text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                                <p className="text-gray-700 dark:text-gray-300 text-sm bg-gray-50 dark:bg-[#252525] p-3 rounded-lg">
                                     {selectedOrder.shippingAddress || 'N/A'}
                                 </p>
                             </div>
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-2">Billing Address</h3>
-                                <p className="text-gray-700 dark:text-gray-300 text-sm bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                                <p className="text-gray-700 dark:text-gray-300 text-sm bg-gray-50 dark:bg-[#252525] p-3 rounded-lg">
                                     {selectedOrder.billingAddress || 'Same as shipping'}
                                 </p>
                             </div>
@@ -184,8 +197,8 @@ const OrdersPage = () => {
                             <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Items</h3>
                             <div className="space-y-3">
                                 {selectedOrder.items?.map((item, idx) => (
-                                    <div key={idx} className="flex gap-4 p-3 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-lg shadow-sm hover:shadow-md transition-shadow">
-                                        <div className="w-16 h-16 flex-shrink-0 bg-gray-100 dark:bg-gray-700 rounded-md overflow-hidden">
+                                    <div key={idx} className="flex gap-4 p-3 bg-white dark:bg-[#252525] border border-gray-100 dark:border-[#2f2f2f] rounded-lg shadow-sm hover:shadow-md transition-shadow">
+                                        <div className="w-16 h-16 flex-shrink-0 bg-gray-100 dark:bg-[#2c2c2c] rounded-md overflow-hidden">
                                             {item.imageUrl ? (
                                                 <img src={item.imageUrl} alt={item.itemName} className="w-full h-full object-cover" />
                                             ) : (
@@ -193,11 +206,11 @@ const OrdersPage = () => {
                                             )}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-gray-900 dark:text-white truncate">{item.itemName}</p>
+                                            <p className="font-medium text-gray-900 dark:text-gray-100 truncate">{item.itemName}</p>
                                             <p className="text-xs text-gray-500">{item.itemType} • Qty: {item.quantity}</p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="font-semibold text-gray-900 dark:text-white">₹{item.subtotal?.toFixed(2)}</p>
+                                            <p className="font-semibold text-gray-900 dark:text-gray-100">₹{item.subtotal?.toFixed(2)}</p>
                                             <p className="text-xs text-gray-500">₹{item.unitPrice} ea</p>
                                         </div>
                                     </div>
@@ -206,7 +219,7 @@ const OrdersPage = () => {
                             <div className="flex justify-end mt-4">
                                 <div className="text-right">
                                     <span className="text-gray-500 mr-4">Total Amount:</span>
-                                    <span className="text-2xl font-bold text-gray-900 dark:text-white">₹{selectedOrder.totalPrice?.toFixed(2)}</span>
+                                    <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">₹{selectedOrder.totalPrice?.toFixed(2)}</span>
                                 </div>
                             </div>
                         </div>
@@ -215,13 +228,13 @@ const OrdersPage = () => {
                         {selectedOrder.statusHistory && selectedOrder.statusHistory.length > 0 && (
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Order History</h3>
-                                <div className="space-y-4 border-l-2 border-gray-200 dark:border-gray-700 ml-2 pl-4 py-1">
+                                <div className="space-y-4 border-l-2 border-gray-200 dark:border-[#2f2f2f] ml-2 pl-4 py-1">
                                     {selectedOrder.statusHistory.map((history, idx) => (
                                         <div key={idx} className="relative">
                                             <div className="absolute -left-[21px] top-1.5 w-3 h-3 rounded-full bg-purple-500 ring-2 ring-white dark:ring-gray-900" />
-                                            <p className="text-sm font-medium text-gray-900 dark:text-white">{history.status.replace('_', ' ')}</p>
+                                            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{history.status.replace('_', ' ')}</p>
                                             <p className="text-xs text-gray-500">{new Date(history.changedAt).toLocaleString()}</p>
-                                            {history.notes && <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 bg-gray-50 dark:bg-gray-800 p-2 rounded">{history.notes}</p>}
+                                            {history.notes && <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 bg-gray-50 dark:bg-[#252525] p-2 rounded">{history.notes}</p>}
                                         </div>
                                     ))}
                                 </div>
@@ -229,7 +242,7 @@ const OrdersPage = () => {
                         )}
 
                         {/* Action Buttons */}
-                        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-[#2f2f2f]">
                             {selectedOrder.status === 'PROCESSING' && (
                                 <Button onClick={() => { handleShipClick(selectedOrder); }}>
                                     <FaTruck /> Mark as Shipped

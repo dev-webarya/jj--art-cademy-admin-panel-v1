@@ -31,7 +31,7 @@ const Toast = ({ id, type, message, onClose }) => {
 
     return (
         <div
-            className={`flex items-center gap-3 p-4 rounded-xl border shadow-lg animate-slideIn ${bgColors[type]}`}
+            className={`flex items-center gap-3 p-4 rounded-xl border shadow-sm animate-slideIn ${bgColors[type]}`}
         >
             {icons[type]}
             <p className="flex-1 text-sm text-gray-700 dark:text-gray-200">{message}</p>

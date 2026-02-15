@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaSearch } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -14,6 +14,7 @@ const EventsPage = () => {
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('create');
     const [selectedItem, setSelectedItem] = useState(null);
@@ -163,7 +164,7 @@ const EventsPage = () => {
         {
             key: 'location',
             label: 'Where',
-            render: (val, row) => row.isOnline ? <span className="text-purple-500 font-semibold">Online</span> : val || '-'
+            render: (val, row) => row.isOnline ? <span className="text-[#2383e2] font-semibold">Online</span> : val || '-'
         },
         {
             key: 'isPublic',
@@ -206,19 +207,33 @@ const EventsPage = () => {
 
     const eventTypeOptions = EVENT_TYPES.map(t => ({ value: t, label: t.replace(/_/g, ' ') }));
 
+    const filteredEvents = useMemo(() => {
+        if (!searchTerm) return events;
+        const term = searchTerm.toLowerCase();
+        return events.filter(e =>
+            (e.title || '').toLowerCase().includes(term) ||
+            (e.description || '').toLowerCase().includes(term) ||
+            (e.location || '').toLowerCase().includes(term) ||
+            (e.eventType || '').toLowerCase().includes(term) ||
+            (e.status || '').toLowerCase().includes(term)
+        );
+    }, [events, searchTerm]);
+
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Events Management</h1>
+                <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-1">Events Management</h1>
                 <p className="text-gray-600 dark:text-gray-400">Create and manage workshops, exhibitions, and other events</p>
             </div>
 
             <DataTable
                 columns={columns}
-                data={events}
+                data={filteredEvents}
                 loading={loading}
                 pagination={pagination}
                 onPageChange={setPage}
+                onSearch={setSearchTerm}
+                searchPlaceholder="Search events..."
                 actions={
                     <Button onClick={() => openModal('create')}>
                         <FaPlus /> New Event
@@ -245,49 +260,49 @@ const EventsPage = () => {
                         <div className="col-span-2">
                             {selectedItem?.imageUrl && <img src={selectedItem.imageUrl} alt="Event" className="w-full h-48 object-cover rounded-lg mb-4" />}
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Title</span>
-                            <span className="font-bold text-lg text-gray-900 dark:text-white">{selectedItem?.title}</span>
+                            <span className="font-bold text-lg text-gray-900 dark:text-gray-100">{selectedItem?.title}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Type</span>
-                            <span className="font-medium text-gray-900 dark:text-white">{selectedItem?.eventType?.replace(/_/g, ' ')}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{selectedItem?.eventType?.replace(/_/g, ' ')}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Fee</span>
-                            <span className="font-medium text-gray-900 dark:text-white">{selectedItem?.fee > 0 ? `₹${selectedItem.fee}` : 'Free'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{selectedItem?.fee > 0 ? `₹${selectedItem.fee}` : 'Free'}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Start</span>
-                            <span className="font-medium text-gray-900 dark:text-white">{new Date(selectedItem?.startDateTime).toLocaleString()}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{new Date(selectedItem?.startDateTime).toLocaleString()}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">End</span>
-                            <span className="font-medium text-gray-900 dark:text-white">{new Date(selectedItem?.endDateTime).toLocaleString()}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{new Date(selectedItem?.endDateTime).toLocaleString()}</span>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Location / Link</span>
-                            <div className="font-medium text-gray-900 dark:text-white">
+                            <div className="font-medium text-gray-900 dark:text-gray-100">
                                 {selectedItem?.isOnline ? (
                                     <>
-                                        <span className="text-purple-500 mr-2">Online</span>
+                                        <span className="text-[#2383e2] mr-2">Online</span>
                                         {selectedItem?.meetingLink && <a href={selectedItem.meetingLink} target="_blank" rel="noreferrer" className="text-blue-500 underline">{selectedItem.meetingLink}</a>}
                                         {selectedItem?.meetingPassword && <span className="ml-2 text-gray-500">(Pass: {selectedItem.meetingPassword})</span>}
                                     </>
                                 ) : selectedItem?.location || '-'}
                             </div>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Visibility</span>
-                            <span className="font-medium text-gray-900 dark:text-white">{selectedItem?.isPublic ? 'Public' : 'Private'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{selectedItem?.isPublic ? 'Public' : 'Private'}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Registration</span>
-                            <span className="font-medium text-gray-900 dark:text-white">{selectedItem?.isRegistrationOpen ? 'Open' : 'Closed'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100">{selectedItem?.isRegistrationOpen ? 'Open' : 'Closed'}</span>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Description</span>
-                            <p className="font-medium text-gray-900 dark:text-white whitespace-pre-wrap">{selectedItem?.description || '-'}</p>
+                            <p className="font-medium text-gray-900 dark:text-gray-100 whitespace-pre-wrap">{selectedItem?.description || '-'}</p>
                         </div>
                     </div>
                 ) : (
@@ -300,7 +315,7 @@ const EventsPage = () => {
                             <Input label="End Date & Time" type="datetime-local" value={formData.endDateTime} onChange={(e) => setFormData({ ...formData, endDateTime: e.target.value })} required />
                         </div>
 
-                        <div className="border-t border-gray-200 dark:border-gray-700 pt-4 my-2">
+                        <div className="border-t border-gray-200 dark:border-[#2f2f2f] pt-4 my-2">
                             <div className="flex items-center gap-2 mb-3">
                                 <input type="checkbox" id="isOnline" checked={formData.isOnline} onChange={(e) => setFormData({ ...formData, isOnline: e.target.checked })} className="w-4 h-4 rounded text-blue-600" />
                                 <label htmlFor="isOnline" className="font-medium text-gray-700 dark:text-gray-300">Online Event</label>
@@ -321,7 +336,7 @@ const EventsPage = () => {
                             <Input label="Entry Fee (₹)" type="number" step="0.01" value={formData.fee} onChange={(e) => setFormData({ ...formData, fee: e.target.value })} />
                         </div>
 
-                        <div className="flex gap-6 pt-2">
+                        <div className="flex gap-3 pt-2">
                             <div className="flex items-center gap-2">
                                 <input type="checkbox" id="isPublic" checked={formData.isPublic} onChange={(e) => setFormData({ ...formData, isPublic: e.target.checked })} className="w-4 h-4 rounded text-blue-600" />
                                 <label htmlFor="isPublic" className="text-sm text-gray-700 dark:text-gray-300">Public Visibility</label>
@@ -334,8 +349,8 @@ const EventsPage = () => {
 
                         <ImageUpload
                             label="Event Image"
-                            currentImage={formData.imageUrl}
-                            onImageSelected={(url) => setFormData({ ...formData, imageUrl: url })}
+                            value={formData.imageUrl}
+                            onChange={(url) => setFormData({ ...formData, imageUrl: url })}
                         />
                         <Input label="Banner URL" value={formData.bannerUrl} onChange={(e) => setFormData({ ...formData, bannerUrl: e.target.value })} placeholder="Optional banner image URL" />
 

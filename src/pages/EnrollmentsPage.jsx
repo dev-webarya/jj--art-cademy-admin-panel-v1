@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { FaCheck, FaTimes, FaEye, FaPlus } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
 import Modal from '../components/ui/Modal';
@@ -15,6 +15,7 @@ const EnrollmentsPage = () => {
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Modal states
     const [modalOpen, setModalOpen] = useState(false);
@@ -208,19 +209,33 @@ const EnrollmentsPage = () => {
     const scheduleOptions = SCHEDULE_OPTIONS.map(s => ({ value: s, label: s.replace(/_/g, ' ') }));
     const classOptions = classes.map(c => ({ value: c.id, label: c.title || c.name }));
 
+    const filteredEnrollments = useMemo(() => {
+        if (!searchTerm) return enrollments;
+        const term = searchTerm.toLowerCase();
+        return enrollments.filter(e =>
+            (e.rollNo || '').toString().toLowerCase().includes(term) ||
+            (e.studentName || e.userName || '').toLowerCase().includes(term) ||
+            (e.className || '').toLowerCase().includes(term) ||
+            (e.schedule || '').toLowerCase().includes(term) ||
+            (e.status || '').toLowerCase().includes(term)
+        );
+    }, [enrollments, searchTerm]);
+
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Enrollments</h1>
+                <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-1">Enrollments</h1>
                 <p className="text-gray-600 dark:text-gray-400">Manage student enrollments and approvals</p>
             </div>
 
             <DataTable
                 columns={columns}
-                data={enrollments}
+                data={filteredEnrollments}
                 loading={loading}
                 pagination={pagination}
                 onPageChange={setPage}
+                onSearch={setSearchTerm}
+                searchPlaceholder="Search enrollments..."
                 actions={
                     // <Button onClick={() => openModal('create')}>
                     //     <FaPlus /> New Enrollment
@@ -246,45 +261,45 @@ const EnrollmentsPage = () => {
             >
                 {modalMode === 'view' ? (
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Roll No</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.rollNo || '-'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedEnrollment?.rollNo || '-'}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Status</span>
                             <StatusBadge status={selectedEnrollment?.status} />
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Student</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.studentName || selectedEnrollment?.userName}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedEnrollment?.studentName || selectedEnrollment?.userName}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Email</span>
-                            <span className="font-medium text-gray-900 dark:text-white break-all">{selectedEnrollment?.studentEmail || '-'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 break-all">{selectedEnrollment?.studentEmail || '-'}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Class</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.className}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedEnrollment?.className}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Schedule</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.schedule?.replace(/_/g, ' ')}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedEnrollment?.schedule?.replace(/_/g, ' ')}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Parent/Guardian</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.parentGuardianName || '-'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedEnrollment?.parentGuardianName || '-'}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Age</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.studentAge || '-'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedEnrollment?.studentAge || '-'}</span>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Address</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedEnrollment?.address || '-'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedEnrollment?.address || '-'}</span>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Emergency Contact</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">
                                 {selectedEnrollment?.emergencyContactName && (
                                     <>
                                         {selectedEnrollment.emergencyContactName}
@@ -294,9 +309,9 @@ const EnrollmentsPage = () => {
                                 )}
                             </span>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Message</span>
-                            <p className="font-medium text-gray-900 dark:text-white text-base whitespace-pre-wrap">
+                            <p className="font-medium text-gray-900 dark:text-gray-100 text-base whitespace-pre-wrap">
                                 {selectedEnrollment?.additionalMessage || '-'}
                             </p>
                         </div>

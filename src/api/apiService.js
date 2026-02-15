@@ -43,8 +43,15 @@ export const apiRequest = async (endpoint, options = {}) => {
         headers,
     };
 
+    // Build query string from params if present
+    let url = `${BASE_URL}${endpoint}`;
+    if (options.params) {
+        const queryString = buildQueryString(options.params);
+        url += queryString;
+    }
+
     try {
-        const response = await fetch(`${BASE_URL}${endpoint}`, config);
+        const response = await fetch(url, config);
 
         // Handle 401 Unauthorized
         if (response.status === 401) {

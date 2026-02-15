@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaPlay, FaStop, FaCheck } from 'react-icons/fa';
 import DataTable from '../components/ui/DataTable';
@@ -12,16 +12,14 @@ const SessionsPage = () => {
     const toast = useToast();
     const location = useLocation();
     const [sessions, setSessions] = useState([]);
-    const [classes, setClasses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [pagination, setPagination] = useState(null);
     const [page, setPage] = useState(0);
-    const [selectedClassId, setSelectedClassId] = useState(location.state?.classId || ''); // Filter state
+    const [searchTerm, setSearchTerm] = useState('');
     const [modalOpen, setModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState('view');
     const [selectedItem, setSelectedItem] = useState(null);
     const [formData, setFormData] = useState({
-        classId: '',
         sessionDate: '',
         startTime: '',
         endTime: '',
@@ -32,20 +30,13 @@ const SessionsPage = () => {
     });
     const [formLoading, setFormLoading] = useState(false);
 
-    const loadClasses = useCallback(async () => {
-        try {
-            const response = await getPaginated(API_ENDPOINTS.ART_CLASSES.GET_ALL, { size: 100 });
-            setClasses(response.content || []);
-        } catch (error) {
-            console.error('Failed to load classes:', error);
-        }
-    }, []);
+    // ... loadClasses removed (not needed) ...
 
     const loadSessions = useCallback(async () => {
         setLoading(true);
         try {
             const params = { page, size: 20 };
-            if (selectedClassId) params.classId = selectedClassId; // Add filter if API supports it
+            // Removed classId filter
             const response = await getPaginated(API_ENDPOINTS.SESSIONS.GET_ALL, params);
             setSessions(response.content || []);
             setPagination({
@@ -59,20 +50,22 @@ const SessionsPage = () => {
         } finally {
             setLoading(false);
         }
-    }, [page, selectedClassId, toast]);
+    }, [page, toast]);
 
     useEffect(() => {
-        loadClasses();
         loadSessions();
-    }, [loadClasses, loadSessions]);
+    }, [loadSessions]);
 
     const handleStatusUpdate = async (id, status, reason = '') => {
+        if (!confirm(`Are you sure you want to mark this session as ${status}?`)) return;
         try {
-            await api.patch(`${API_ENDPOINTS.SESSIONS.UPDATE_STATUS(id)}?status=${status}${reason ? `&reason=${reason}` : ''}`);
-            toast.success(`Session ${status.toLowerCase().replace('_', ' ')}`);
+            await api.patch(API_ENDPOINTS.SESSIONS.UPDATE_STATUS(id), null, {
+                params: { status, reason }
+            });
+            toast.success(`Session marked as ${status}`);
             loadSessions();
         } catch (error) {
-            toast.error('Failed to update session status');
+            toast.error(error.message || 'Failed to update status');
         }
     };
 
@@ -81,7 +74,6 @@ const SessionsPage = () => {
         setSelectedItem(item);
         if (mode === 'edit' && item) {
             setFormData({
-                classId: item.classId || '',
                 sessionDate: item.sessionDate || '',
                 startTime: item.startTime || '',
                 endTime: item.endTime || '',
@@ -92,7 +84,6 @@ const SessionsPage = () => {
             });
         } else if (mode === 'create') {
             setFormData({
-                classId: '',
                 sessionDate: '',
                 startTime: '',
                 endTime: '',
@@ -110,7 +101,7 @@ const SessionsPage = () => {
         setFormLoading(true);
         try {
             const requestData = {
-                classId: formData.classId,
+                // classId removed
                 sessionDate: formData.sessionDate,
                 startTime: formData.startTime,
                 endTime: formData.endTime,
@@ -188,31 +179,33 @@ const SessionsPage = () => {
         },
     ];
 
-    const classOptions = classes.map(c => ({ value: c.id, label: c.title || c.name }));
+    const filteredSessions = useMemo(() => {
+        if (!searchTerm) return sessions;
+        const term = searchTerm.toLowerCase();
+        return sessions.filter(s =>
+            (s.topic || '').toLowerCase().includes(term) ||
+            (s.sessionDate || '').toLowerCase().includes(term) ||
+            (s.status || '').toLowerCase().includes(term) ||
+            (s.startTime || '').toLowerCase().includes(term)
+        );
+    }, [sessions, searchTerm]);
 
     return (
         <div className="animate-fadeIn">
             <div className="mb-6">
-                <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2">Class Sessions</h1>
+                <h1 className="text-xl font-semibold text-gray-800 dark:text-gray-100 mb-1">Class Sessions</h1>
                 <p className="text-gray-600 dark:text-gray-400">Schedule and manage class sessions</p>
             </div>
 
-            <div className="flex gap-4 mb-4">
-                <Select
-                    placeholder="Filter by Class"
-                    value={selectedClassId}
-                    onChange={(e) => setSelectedClassId(e.target.value)}
-                    options={classOptions}
-                    className="w-64"
-                />
-            </div>
 
             <DataTable
                 columns={columns}
-                data={sessions}
+                data={filteredSessions}
                 loading={loading}
                 pagination={pagination}
                 onPageChange={setPage}
+                onSearch={setSearchTerm}
+                searchPlaceholder="Search sessions..."
                 actions={
                     <Button onClick={() => openModal('create')}>
                         <FaPlus /> New Session
@@ -236,69 +229,58 @@ const SessionsPage = () => {
             >
                 {modalMode === 'view' ? (
                     <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                            <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Class</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{classes.find(c => c.id === selectedItem?.classId)?.title || selectedItem?.className || classes.find(c => c.id === selectedItem?.classId)?.name || '-'}</span>
-                        </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Topic</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.topic}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.topic}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Date</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.sessionDate}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.sessionDate}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Status</span>
                             <StatusBadge status={selectedItem?.status} />
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Time</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.startTime} - {selectedItem?.endTime}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.startTime} - {selectedItem?.endTime}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Attendance</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.attendanceTaken ? 'Taken' : 'Not Taken'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.attendanceTaken ? 'Taken' : 'Not Taken'}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Total Students</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.totalStudents || 0}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.totalStudents || 0}</span>
                         </div>
-                        <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Present / Absent</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">
                                 <span className="text-green-600 dark:text-green-400">{selectedItem?.presentCount || 0}</span>
                                 <span className="mx-2 text-gray-400">/</span>
                                 <span className="text-red-600 dark:text-red-400">{selectedItem?.absentCount || 0}</span>
                             </span>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Meeting Link</span>
-                            <a href={selectedItem?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-purple-600 dark:text-purple-400 hover:underline break-all">
+                            <a href={selectedItem?.meetingLink} target="_blank" rel="noopener noreferrer" className="text-[#2383e2] dark:text-purple-400 hover:underline break-all">
                                 {selectedItem?.meetingLink || '-'}
                             </a>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Meeting Password</span>
-                            <span className="font-medium text-gray-900 dark:text-white text-base">{selectedItem?.meetingPassword || '-'}</span>
+                            <span className="font-medium text-gray-900 dark:text-gray-100 text-base">{selectedItem?.meetingPassword || '-'}</span>
                         </div>
-                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                        <div className="col-span-2 p-3 bg-gray-50 dark:bg-[#2c2c2c]/50 rounded-lg">
                             <span className="block text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Description</span>
-                            <p className="font-medium text-gray-900 dark:text-white text-base whitespace-pre-wrap">
+                            <p className="font-medium text-gray-900 dark:text-gray-100 text-base whitespace-pre-wrap">
                                 {selectedItem?.description || '-'}
                             </p>
                         </div>
                     </div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <Select
-                            label="Class"
-                            value={formData.classId}
-                            onChange={(e) => setFormData({ ...formData, classId: e.target.value })}
-                            options={classOptions}
-                            required
-                            placeholder="Select Class"
-                        />
+                        {/* Class selection removed as sessions are global */}
                         <Input label="Topic" value={formData.topic} onChange={(e) => setFormData({ ...formData, topic: e.target.value })} required />
                         <div className="grid grid-cols-3 gap-4">
                             <Input label="Date" type="date" value={formData.sessionDate} onChange={(e) => setFormData({ ...formData, sessionDate: e.target.value })} required />

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { FaBars, FaSun, FaMoon } from 'react-icons/fa';
 import Sidebar from './Sidebar';
+import Footer from './Footer';
 import { useTheme } from '../../context/ThemeContext';
 
 const AdminLayout = () => {
@@ -40,8 +41,9 @@ const AdminLayout = () => {
                 </header>
 
                 {/* Page Content */}
-                <main className="flex-1 overflow-y-auto px-6 py-5 lg:px-8">
+                <main className="flex-1 overflow-y-auto px-6 py-5 lg:px-8 flex flex-col">
                     <Outlet />
+                    <Footer />
                 </main>
             </div>
         </div>

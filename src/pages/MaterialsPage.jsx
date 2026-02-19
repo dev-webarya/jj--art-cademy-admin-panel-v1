@@ -33,9 +33,6 @@ const MaterialsPage = () => {
         name: '',
         description: '',
         categoryId: '',
-        basePrice: '',
-        discount: '',
-        stock: '',
         variants: [], // Array of { id, size, price, discountPrice, stock }
         imageUrl: '',
         active: true,
@@ -128,9 +125,6 @@ const MaterialsPage = () => {
                 name: item.name || '',
                 description: item.description || '',
                 categoryId: item.categoryId || '',
-                basePrice: item.basePrice || '',
-                discount: item.discount || 0,
-                stock: item.stock || 0,
                 variants: item.variants || [],
                 imageUrl: item.imageUrl || '',
                 active: item.active ?? true,
@@ -140,9 +134,6 @@ const MaterialsPage = () => {
                 name: '',
                 description: '',
                 categoryId: '',
-                basePrice: '',
-                discount: 0,
-                stock: '',
                 variants: [],
                 imageUrl: '',
                 active: true,
@@ -185,13 +176,16 @@ const MaterialsPage = () => {
         e.preventDefault();
         setFormLoading(true);
         try {
+            if (formData.variants.length === 0) {
+                toast.error('Please add at least one variant');
+                setFormLoading(false);
+                return;
+            }
+
             const requestData = {
                 name: formData.name,
                 description: formData.description,
                 categoryId: formData.categoryId,
-                basePrice: parseFloat(formData.basePrice),
-                discount: parseFloat(formData.discount || 0),
-                stock: parseInt(formData.stock || 0),
                 variants: formData.variants,
                 imageUrl: formData.imageUrl,
                 active: formData.active,
@@ -291,95 +285,98 @@ const MaterialsPage = () => {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                        {items.map((item) => (
-                            <div key={item.id} className="bg-white dark:bg-[#252525] rounded-lg shadow-md hover:shadow-sm transition-all duration-300 overflow-hidden group">
-                                {/* Image Header */}
-                                <div className="relative h-40 overflow-hidden">
-                                    <img
-                                        src={item.imageUrl || 'https://via.placeholder.com/300?text=Material'}
-                                        alt={item.name}
-                                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300 cursor-pointer"
-                                        onClick={() => {
-                                            setPreviewImage(item.imageUrl || 'https://via.placeholder.com/300?text=Material');
-                                            setPreviewTitle(item.name);
-                                        }}
-                                    />
-                                    <div className="absolute top-2 right-2 bg-white/95 dark:bg-[#1e1e1e]/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm text-gray-800 dark:text-gray-200">
-                                        {item.categoryName || 'Uncategorized'}
-                                    </div>
-                                    {item.discount > 0 && (
-                                        <div className="absolute top-2 left-2 bg-red-500 text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm">
-                                            -{item.discount}% OFF
+                        {items.map((item) => {
+                            const totalStock = item.variants?.reduce((acc, v) => acc + (v.stock || 0), 0) || 0;
+                            const prices = item.variants?.map(v => v.price) || [];
+                            const minPrice = prices.length > 0 ? Math.min(...prices) : 0;
+                            const maxPrice = prices.length > 0 ? Math.max(...prices) : 0;
+                            const priceDisplay = minPrice === maxPrice ? `₹${minPrice}` : `₹${minPrice} - ₹${maxPrice}`;
+
+                            return (
+                                <div key={item.id} className="bg-white dark:bg-[#252525] rounded-lg shadow-md hover:shadow-sm transition-all duration-300 overflow-hidden group">
+                                    {/* Image Header */}
+                                    <div className="relative h-40 overflow-hidden">
+                                        <img
+                                            src={item.imageUrl || 'https://via.placeholder.com/300?text=Material'}
+                                            alt={item.name}
+                                            className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300 cursor-pointer"
+                                            onClick={() => {
+                                                setPreviewImage(item.imageUrl || 'https://via.placeholder.com/300?text=Material');
+                                                setPreviewTitle(item.name);
+                                            }}
+                                        />
+                                        <div className="absolute top-2 right-2 bg-white/95 dark:bg-[#1e1e1e]/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm text-gray-800 dark:text-gray-200">
+                                            {item.categoryName || 'Uncategorized'}
                                         </div>
-                                    )}
-                                    {/* Status badge with stock */}
-                                    <div className={`absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm backdrop-blur-sm ${item.stock > 0
-                                        ? 'bg-green-500/90 text-white'
-                                        : 'bg-red-500/90 text-white'
-                                        }`}>
-                                        {item.stock > 0 ? `${item.stock} in stock` : 'Out of stock'}
-                                    </div>
-                                    {item.variants?.length > 0 && (
-                                        <div className="absolute bottom-2 right-2 bg-white/95 dark:bg-[#1e1e1e]/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm text-gray-800 dark:text-gray-200">
-                                            {item.variants.length} Variants
+                                        {/* Status badge with stock */}
+                                        <div className={`absolute bottom-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm backdrop-blur-sm ${totalStock > 0
+                                            ? 'bg-green-500/90 text-white'
+                                            : 'bg-red-500/90 text-white'
+                                            }`}>
+                                            {totalStock > 0 ? `${totalStock} in stock` : 'Out of stock'}
                                         </div>
-                                    )}
-                                </div>
+                                        {item.variants?.length > 0 && (
+                                            <div className="absolute bottom-2 right-2 bg-white/95 dark:bg-[#1e1e1e]/95 px-2 py-0.5 rounded text-[10px] font-semibold shadow-sm text-gray-800 dark:text-gray-200">
+                                                {item.variants.length} Variants
+                                            </div>
+                                        )}
+                                    </div>
 
-                                {/* Content Body */}
-                                <div className="p-4 space-y-2">
-                                    <h3 className="text-base font-bold text-gray-800 dark:text-gray-100 line-clamp-1" title={item.name}>
-                                        {item.name}
-                                    </h3>
+                                    {/* Content Body */}
+                                    <div className="p-4 space-y-2">
+                                        <h3 className="text-base font-bold text-gray-800 dark:text-gray-100 line-clamp-1" title={item.name}>
+                                            {item.name}
+                                        </h3>
 
-                                    <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 h-8 leading-tight">
-                                        {item.description || 'No description available.'}
-                                    </p>
+                                        <p className="text-xs text-gray-600 dark:text-gray-400 line-clamp-2 h-8 leading-tight">
+                                            {item.description || 'No description available.'}
+                                        </p>
 
-                                    {item.variants?.length > 0 && (
-                                        <button
-                                            onClick={() => openVariantsModal(item)}
-                                            className="w-full flex items-center justify-between text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                                        >
-                                            <span className="flex items-center gap-1.5">
-                                                <FaLayerGroup className="text-[10px]" /> {item.variants.length} Variant{item.variants.length > 1 ? 's' : ''}
-                                            </span>
-                                            <span className="text-[10px] font-medium">View →</span>
-                                        </button>
-                                    )}
-
-                                    <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#2f2f2f]">
-                                        <div>
-                                            <div className="flex items-baseline gap-1.5">
-                                                <span className="text-base font-bold text-gray-900 dark:text-gray-100">
-                                                    ₹{item.basePrice}
+                                        {item.variants?.length > 0 && (
+                                            <button
+                                                onClick={() => openVariantsModal(item)}
+                                                className="w-full flex items-center justify-between text-xs bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-2 py-1.5 rounded hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                                            >
+                                                <span className="flex items-center gap-1.5">
+                                                    <FaLayerGroup className="text-[10px]" /> {item.variants.length} Variant{item.variants.length > 1 ? 's' : ''}
                                                 </span>
-                                                {item.stock < 10 && item.stock > 0 && (
-                                                    <span className="text-[10px] text-orange-500 font-semibold">Low Stock</span>
-                                                )}
+                                                <span className="text-[10px] font-medium">View →</span>
+                                            </button>
+                                        )}
+
+                                        <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-[#2f2f2f]">
+                                            <div>
+                                                <div className="flex items-baseline gap-1.5">
+                                                    <span className="text-base font-bold text-gray-900 dark:text-gray-100">
+                                                        {priceDisplay}
+                                                    </span>
+                                                    {totalStock < 10 && totalStock > 0 && (
+                                                        <span className="text-[10px] text-orange-500 font-semibold">Low Stock</span>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex gap-1">
+                                                <button
+                                                    onClick={() => openModal('edit', item)}
+                                                    className="p-1.5 text-gray-600 hover:text-[#2383e2] hover:bg-blue-50 dark:text-gray-400 dark:hover:bg-blue-900/30 rounded transition-colors"
+                                                    title="Edit"
+                                                >
+                                                    <FaEdit className="text-sm" />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(item.id)}
+                                                    className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded transition-colors"
+                                                    title="Delete"
+                                                >
+                                                    <FaTrash className="text-sm" />
+                                                </button>
                                             </div>
                                         </div>
-
-                                        <div className="flex gap-1">
-                                            <button
-                                                onClick={() => openModal('edit', item)}
-                                                className="p-1.5 text-gray-600 hover:text-[#2383e2] hover:bg-blue-50 dark:text-gray-400 dark:hover:bg-blue-900/30 rounded transition-colors"
-                                                title="Edit"
-                                            >
-                                                <FaEdit className="text-sm" />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDelete(item.id)}
-                                                className="p-1.5 text-gray-600 hover:text-red-600 hover:bg-red-50 dark:text-gray-400 dark:hover:bg-red-900/30 rounded transition-colors"
-                                                title="Delete"
-                                            >
-                                                <FaTrash className="text-sm" />
-                                            </button>
-                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 
@@ -423,30 +420,7 @@ const MaterialsPage = () => {
                         required
                     />
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <Input
-                            label="Base Price (₹)"
-                            type="number"
-                            step="0.01"
-                            value={formData.basePrice}
-                            onChange={(e) => setFormData({ ...formData, basePrice: e.target.value })}
-                            required
-                        />
-                        <Input
-                            label="Total Stock"
-                            type="number"
-                            value={formData.stock}
-                            onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
-                            required
-                        />
-                    </div>
 
-                    <Input
-                        label="Discount (%)"
-                        type="number"
-                        value={formData.discount}
-                        onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
-                    />
 
                     {/* Variants Section */}
                     <div className="border rounded-lg p-3 bg-gray-50 dark:bg-[#252525]/50">
